@@ -1,0 +1,27 @@
+spring:
+  h2:
+    console:
+      enabled: true
+
+  datasource:
+    url: jdbc:h2:mem:yoseobara
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      format_sql: true
+      show_sql: true
+      ddl-auto: update
+
+server:
+  error:
+    include-exception: false # Response? Exception ?? ??
+    include-message: always # Response? Exception Message ?? ??
+    include-stacktrace: on_param # Response? Stack Trace ?? ??
+  servlet:
+    encoding:
+      charset: utf-8
+      enabled: true
+      force: true
