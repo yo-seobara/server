@@ -59,6 +59,32 @@ public class MemberService {
         );
     }
 
+    @Transactional
+    public ResponseDto<?> login(LoginRequestDto requestDto, HttpServletResponse response) {
+        Member member = isPresentMember(requestDto.getUsername());
+        if (null == member) {
+            return ResponseDto.fail(ErrorCode.USER_NOT_FOUND);
+        }
+
+        if (!member.validatePassword(passwordEncoder, requestDto.getPassword())) {
+            return ResponseDto.fail(ErrorCode.INVALID_USER);
+        }
+
+        TokenDto tokenDto = tokenProvider.generateTokenDto(member);
+        tokenToHeaders(tokenDto, response);
+
+        return ResponseDto.success(
+                MemberResponseDto.builder()
+                        .id(member.getMemberId())
+                        .username(member.getUsername())
+                        .nickname(member.getNickname())
+                        .token(tokenDto)
+                        .createdAt(member.getCreatedAt())
+                        .modifiedAt(member.getModifiedAt())
+                        .build()
+        );
+    }
+
 
 
     @Transactional(readOnly = true)
