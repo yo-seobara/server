@@ -1,4 +1,4 @@
-package com.final2.yoseobara.exception.advice;
+package com.final2.yoseobara.advice;
 
 import com.final2.yoseobara.exception.BusinessException;
 import com.final2.yoseobara.exception.ErrorCode;
