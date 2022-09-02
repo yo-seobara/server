@@ -15,6 +15,9 @@ spring:
       show_sql: true
       ddl-auto: update
 
+  profiles:
+    include: KEYS
+
 server:
   error:
     include-exception: false # Response? Exception ?? ??
