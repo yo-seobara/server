@@ -2,7 +2,7 @@ package com.final2.yoseobara.advice;
 
 import com.final2.yoseobara.exception.BusinessException;
 import com.final2.yoseobara.exception.ErrorCode;
-import com.final2.yoseobara.response.ResponseDto;
+import com.final2.yoseobara.controller.response.ResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

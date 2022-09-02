@@ -16,6 +16,8 @@ public enum ErrorCode {
     USER_NOT_FOUND(400, "USER_NOT_FOUND", "해당 유저가 존재하지 않습니다."),
     INVALID_USER(400, "INVALID_USER", "비밀번호가 일치하지 않습니다"),
     DUPLICATED_USERNAME(400, "DUPLICATED_USERNAME", "중복된 유저네임입니다."),
+    DUPLICATED_NICKNAME(400, "DUPLICATED_NICKNAME", "중복된 닉네임입니다."),
+
     PASSWORDS_NOT_MATCHED(400, "PASSWORDS_NOT_MATCHED", "비밀번호와 비밀번호 확인이 일치하지 않습니다."),
     LOGIN_REQUIRED(400, "LOGIN_REQUIRED", "로그인이 필요합니다."),
 
