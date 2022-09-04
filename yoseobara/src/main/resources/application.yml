@@ -1,13 +1,15 @@
 spring:
+  active: KEYS
   h2:
     console:
       enabled: true
 
+
   datasource:
-    url: jdbc:h2:mem:yoseobara
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+  url: ${jdbc.url}
+  driver-class-name: com.mysql.cj.jdbc.Driver
+  username: ${jdbc.username}
+  password: ${jdbc.password}
 
   jpa:
     hibernate:
@@ -25,3 +27,22 @@ server:
       charset: utf-8
       enabled: true
       force: true
+
+cloud:
+  aws:
+    credentials:
+      accessKey: ${aws.access-key}
+      secretKey: ${aws.secret-key}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    s3:
+      bucket: ${aws.s3.bucket}
+        url ${aws.s3.bucket.url}
+
+  # multipart 사이즈 설정
+  http:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB

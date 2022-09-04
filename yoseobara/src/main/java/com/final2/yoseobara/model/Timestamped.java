@@ -20,4 +20,5 @@ public abstract class Timestamped {
     @LastModifiedDate // 마지막 변경 시점
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime modifiedAt;
+
 }

@@ -1,4 +1,4 @@
-package com.final2.yoseobara.dto;
+package com.final2.yoseobara.controller.request;
 
 import lombok.Getter;
 
@@ -7,5 +7,7 @@ public class PostRequestDto {
 
     private String title;
     private String nickname;;
-    private String post;
+    private String content;
+    private Long address;
+
 }

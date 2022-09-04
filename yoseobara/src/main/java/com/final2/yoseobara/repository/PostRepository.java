@@ -1,15 +1,15 @@
 package com.final2.yoseobara.repository;
 
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-public class PostRepository {
+import com.final2.yoseobara.domain.Post;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-    private Long id;
-    private String title;
-    private String content;
-    private String writer;
-    private Long address;
+import java.util.List;
+import java.util.Optional;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+    List<Post> findAllByOrderByCreatedAtDesc();
+    <T> List<T> findAllBy(Class<T> type);
+
+    Optional<Post> findById(Long postId);
 }

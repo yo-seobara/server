@@ -2,9 +2,12 @@ package com.final2.yoseobara.service;
 
 
 
-import com.final2.yoseobara.dto.PostRequestDto;
-import com.final2.yoseobara.dto.PostResponseDto;
-import com.final2.yoseobara.model.Post;
+import com.final2.yoseobara.controller.request.PostRequestDto;
+import com.final2.yoseobara.controller.response.PostResponseDto;
+import com.final2.yoseobara.domain.Member;
+import com.final2.yoseobara.domain.Post;
+import com.final2.yoseobara.domain.UserDetailsImpl;
+import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +23,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-    private final S3Service s3Service;
+//    private final S3Service s3Service;
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
@@ -38,8 +41,8 @@ public class PostService {
     }
 
     // Post 상세 조회
-    public PostResponseDto getPost(Long post_id) {
-        Post post = postRepository.findById(post_id).orElseThrow(
+    public PostResponseDto getPost(Long postid) {
+        Post post = postRepository.findById(postid).orElseThrow(
                 () -> new IllegalArgumentException("Couldn't find the post")
         );
         return PostResponseDto.builder()
@@ -49,57 +52,43 @@ public class PostService {
 
     // Post 생성
     @Transactional
-    public Post createPost(PostRequestDto requestDto, UserDetailsImpl userDetails, MultipartFile file, Long memberId) {
+    public Post createPost(PostRequestDto requestDto,
+                           Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
-        String imageUrl = "";
-        if (memberRepository.findById(userDetails.getmember().getId()).isPresent()) {
-            if (!file.isEmpty()) {
-                imageUrl = s3Service.uploadFile(file);
-            }
-        }
         Post post = Post.builder()
                 .title(requestDto.getTitle())
-                .contents(requestDto.getContents())
-                .address(requestDto.getAddress()).imageUrl(imageUrl).build();
-        post.mapTomember(memberFoundById);
+                .content(requestDto.getContent())
+                .address(Float.valueOf(requestDto.getAddress())).build();
         postRepository.save(post);
         return post;
     }
 
     // Post 수정
     @Transactional
-    public PostResponseDto updatePost(Long post_id,
+    public PostResponseDto updatePost(Long postid,
                                       PostRequestDto postRequestDto,
-                                      UserDetailsImpl userDetails,
-                                      MultipartFile file,
-                                      Long memberId) {
+                                      UserDetailsImpl userDetailsImpl, MultipartFile file, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
-        Post postFoundById = postRepository.findById(post_id)
+        Post postFoundById = postRepository.findById(postid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-        String imageUrl = "";
-        if (memberRepository.findById(userDetails.getmember().getId()).isPresent()) {
-            if (!file.isEmpty()) {
-                imageUrl = s3Service.uploadFile(file);
-            }
-        }
-        postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContents(), postRequestDto.getAddress(), postRequestDto.getPrice(), imageUrl);
-        postFoundById.mapToMember(memberFoundById);
+
+        postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
+        postFoundById.mapTomember(memberFoundById);
         postRepository.save(postFoundById);
         return PostResponseDto.builder().post(postFoundById).build();
     }
 
     // Post 삭제
     @Transactional
-    public void deletePost(Long post_id, UserDetailsImpl userDetails) throws IllegalArgumentException {
-        Post post = postRepository.findById(post_id).orElseThrow(
-                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
-        );
-        String loginMember = userDetails.getMember().getMembername();
-        String author = post.getMember().getMembername();
+    public void deletePost(Long postid, UserDetailsImpl userDetails) throws IllegalArgumentException {
+        Post post = postRepository.findById(postid).orElseThrow(
+                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+        String loginMember = userDetails.getMember().getUsername();
+        String author = post.getUsername();
         if (author.equals(loginMember)) {
-            postRepository.deleteById(post_id);
+            postRepository.deleteById(postid);
         } else {
             throw new IllegalArgumentException("해당 게시글에 대한 삭제 권한이 없습니다.");
         }

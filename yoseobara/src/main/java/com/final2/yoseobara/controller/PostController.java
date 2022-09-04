@@ -1,7 +1,8 @@
 package com.final2.yoseobara.controller;
 
-import com.final2.yoseobara.dto.PostRequestDto;
-import com.final2.yoseobara.dto.PostResponseDto;
+import com.final2.yoseobara.controller.request.PostRequestDto;
+import com.final2.yoseobara.controller.response.PostResponseDto;
+import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,12 @@ public class PostController {
     // 게시글 작성
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public String createPost(@RequestPart PostRequestDto postRequestDto,
-                             @AuthenticationPrincipal UsrtDetailsImpl userDetailsImpl,
+                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
                              @RequestPart(required = false) MultipartFile file){
         if(userDetailsImpl.getMember() != null){
-            Long memberId = userDetailsImpl.getMember().getId();
-            String memberername = userDetailsImpl.getmembername();
-            this.postService.createPost(postRequestDto, userDetailsImpl,file, memberId);
+            Long memberId = userDetailsImpl.getMember().getMemberId();
+            String usernamee = userDetailsImpl.getUsername();
+            this.postService.createPost(postRequestDto, memberId);
             return "redirect:/posts";
         }
         return "login";
@@ -55,11 +56,11 @@ public class PostController {
     @PutMapping(value = "/{post_id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, headers = ("content-type=multipart/*"))
     public String updatePost(@PathVariable(name = "post_id") Long post_id,
                              @RequestPart PostRequestDto postRequestDto,
-                             @AuthenticationPrincipal MemberDetailsImpl memberDetailsImpl,
+                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
                              @RequestPart(required = false) MultipartFile file) {
-        if(memberDetailsImpl.getMember() != null){
-            Long memberId = memberDetailsImpl.getMember().getId();
-            this.postService.updatePost(post_id, postRequestDto,memberDetailsImpl, file, memberId);
+        if(userDetailsImpl.getMember() != null){
+            Long memberId = userDetailsImpl.getMember().getMemberId();
+            this.postService.updatePost(post_id, postRequestDto, userDetailsImpl, file, memberId);
             return "redirect:/posts";
         }
         return "login";
@@ -67,9 +68,9 @@ public class PostController {
 
     // 게시물 삭제
     @DeleteMapping("/{post_id}")
-    public String deletePost(@PathVariable Long post_id,@AuthenticationPrincipal MemberDetailsImpl memberDetails){
+    public String deletePost(@PathVariable Long post_id,@AuthenticationPrincipal UserDetailsImpl userDetails){
         try{
-            postService.deletePost(post_id,memberDetails);
+            postService.deletePost(post_id,userDetails);
         }catch (IllegalArgumentException e){
             log.info(e.getMessage());
         }
