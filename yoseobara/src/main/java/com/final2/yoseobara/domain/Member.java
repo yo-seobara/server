@@ -35,7 +35,7 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String nickname;
 
-    private List<String> images;
+//    private List<String> images;
 
     @Override
     public boolean equals(Object o) {
@@ -65,9 +65,9 @@ public class Member extends Timestamped {
         postList.add(post);
     }
 
-    public void mapToMember(List<String> userImages) {
-        this.images = userImages;
-    }
+//    public void mapToMember(List<String> userImages) {
+//        this.images = userImages;
+//    }
 }
 
 

@@ -1,8 +1,10 @@
 spring:
-  active: KEYS
+  profiles:
+    active: KEYS
+    include: KEYS
   h2:
     console:
-      enabled: true
+      enabled:
 
 
   datasource:

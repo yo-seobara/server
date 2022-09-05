@@ -27,7 +27,7 @@ public class PostService {
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> posts = postRepository.findAll();
         List<PostResponseDto> postList = new ArrayList<>();
 
         for (Post post : posts) {
