@@ -36,8 +36,8 @@ public class Post extends Timestamped {
     @Column
     private Float address;
 
-    @Column
-    private List<String> images;
+//    @Column
+//    private List<String> images;
 
     public void setMember(Member member) {
         this.member = member;
