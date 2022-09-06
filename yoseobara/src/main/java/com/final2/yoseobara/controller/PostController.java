@@ -1,8 +1,11 @@
 package com.final2.yoseobara.controller;
 
-import com.final2.yoseobara.controller.request.PostRequestDto;
-import com.final2.yoseobara.controller.response.PostResponseDto;
+import com.final2.yoseobara.dto.request.PostRequestDto;
+import com.final2.yoseobara.dto.response.PostResponseDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.UserDetailsImpl;
+import com.final2.yoseobara.exception.ErrorCode;
+import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.service.PostService;
 import lombok.RequiredArgsConstructor;

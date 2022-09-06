@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners(AuditingEntityListener.class) // 변경되었을 때 자동으로 기록합니다.
 public abstract class Timestamped {
 
     @CreatedDate

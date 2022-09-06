@@ -2,8 +2,8 @@ package com.final2.yoseobara.service;
 
 
 
-import com.final2.yoseobara.controller.request.PostRequestDto;
-import com.final2.yoseobara.controller.response.PostResponseDto;
+import com.final2.yoseobara.dto.request.PostRequestDto;
+import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.domain.UserDetailsImpl;
@@ -73,7 +73,7 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
         postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
-        postFoundById.mapTomember(memberFoundById);
+        postFoundById.mapToMember(memberFoundById);
         postRepository.save(postFoundById);
         return PostResponseDto.builder().post(postFoundById).build();
     }

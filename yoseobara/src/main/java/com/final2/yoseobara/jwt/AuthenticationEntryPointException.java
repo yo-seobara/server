@@ -1,7 +1,7 @@
 package com.final2.yoseobara.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.final2.yoseobara.controller.response.ResponseDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;

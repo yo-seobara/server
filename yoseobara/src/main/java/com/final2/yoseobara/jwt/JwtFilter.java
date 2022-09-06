@@ -1,7 +1,7 @@
 package com.final2.yoseobara.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.final2.yoseobara.controller.response.ResponseDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.Claims;

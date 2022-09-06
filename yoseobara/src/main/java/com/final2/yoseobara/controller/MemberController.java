@@ -1,8 +1,8 @@
 package com.final2.yoseobara.controller;
 
-import com.final2.yoseobara.controller.request.LoginRequestDto;
-import com.final2.yoseobara.controller.request.MemberRequestDto;
-import com.final2.yoseobara.controller.response.ResponseDto;
+import com.final2.yoseobara.dto.request.LoginRequestDto;
+import com.final2.yoseobara.dto.request.MemberRequestDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestBody;

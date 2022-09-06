@@ -1,6 +1,6 @@
-package com.final2.yoseobara.controller.response;
+package com.final2.yoseobara.dto.response;
 
-import com.final2.yoseobara.controller.request.TokenDto;
+import com.final2.yoseobara.dto.request.TokenDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

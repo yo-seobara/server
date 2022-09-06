@@ -1,4 +1,4 @@
-package com.final2.yoseobara.response;
+package com.final2.yoseobara.dto.response;
 
 import com.final2.yoseobara.exception.ErrorCode;
 import lombok.AllArgsConstructor;
@@ -18,4 +18,6 @@ public class ResponseDto<T> {
     public static <T> ResponseDto<T> fail(ErrorCode errorCode) {
         return new ResponseDto<>(false, null, errorCode);
     }
+
+
 }
