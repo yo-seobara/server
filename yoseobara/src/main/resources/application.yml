@@ -30,6 +30,7 @@ server:
       enabled: true
       force: true
 
+# S3 버킷 설정 (AWS)
 cloud:
   aws:
     credentials:
