@@ -12,8 +12,6 @@ import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,7 +66,7 @@ public class PostService {
     @Transactional
     public PostResponseDto updatePost(Long postid,
                                       PostRequestDto postRequestDto,
-                                      UserDetailsImpl userDetailsImpl, MultipartFile file, Long memberId) {
+                                      UserDetailsImpl userDetailsImpl, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
         Post postFoundById = postRepository.findById(postid)

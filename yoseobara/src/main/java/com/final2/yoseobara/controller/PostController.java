@@ -7,10 +7,8 @@ import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,15 +24,14 @@ public class PostController {
 
 
     // 게시글 작성
-    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
-    public String createPost(@RequestPart PostRequestDto postRequestDto,
-                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-                             @RequestPart(required = false) MultipartFile file){
+    @PostMapping
+    public String createPost(@RequestBody PostRequestDto postRequestDto,
+                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
         if(userDetailsImpl.getMember() != null){
             Long memberId = userDetailsImpl.getMember().getMemberId();
             String usernamee = userDetailsImpl.getUsername();
             this.postService.createPost(postRequestDto, memberId);
-            return "redirect:/posts";
+            return "redirect:/api/posts";
         }
         return "login";
     }
@@ -53,14 +50,13 @@ public class PostController {
     }
 
     // 게시물 수정
-    @PutMapping(value = "/{post_id}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE}, headers = ("content-type=multipart/*"))
+    @PutMapping
     public String updatePost(@PathVariable(name = "post_id") Long post_id,
                              @RequestPart PostRequestDto postRequestDto,
-                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl,
-                             @RequestPart(required = false) MultipartFile file) {
+                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         if(userDetailsImpl.getMember() != null){
             Long memberId = userDetailsImpl.getMember().getMemberId();
-            this.postService.updatePost(post_id, postRequestDto, userDetailsImpl, file, memberId);
+            this.postService.updatePost(post_id, postRequestDto, userDetailsImpl, memberId);
             return "redirect:/posts";
         }
         return "login";

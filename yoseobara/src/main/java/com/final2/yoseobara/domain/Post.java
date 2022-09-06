@@ -24,10 +24,7 @@ public class Post extends Timestamped {
     @Column(nullable = false)
     private String content;
 
-    @Column(nullable = false)
-    private String nickname;
-
-    @Column(nullable = false)
+    @Column
     private String username;
 
     @ManyToOne
@@ -44,18 +41,18 @@ public class Post extends Timestamped {
     }
 
     @Builder
-    public Post(String title, String content, Float address) {
+    public Post(String title, String content,Float address) {
         this.title = title;
         this.content = content;
 //        this.images = images;
         this.address = address;
     }
 
-    public void update(String title, String content, Long address) {
+    public void update(String title, String content, Float address) {
         this.title = title;
         this.content = content;
 //        this.images = images;
-        this.address = Float.valueOf(address);
+        this.address =address;
     }
 
     public void mapTomember(Member memberFoundById) {
