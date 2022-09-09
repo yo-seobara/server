@@ -44,32 +44,32 @@ public class PostController {
 
     // 게시물 상세 조회
     @ResponseBody
-    @GetMapping("/{post_id}")
-    public PostResponseDto getPost(@PathVariable Long post_id){
-        return postService.getPost(post_id);
+    @GetMapping("/{postid}")
+    public PostResponseDto getPost(@PathVariable Long postid){
+        return postService.getPost(postid);
     }
 
     // 게시물 수정
-    @PutMapping
-    public String updatePost(@PathVariable(name = "post_id") Long post_id,
+    @PutMapping(value = "/{postid}")
+    public String updatePost(Long postid,
                              @RequestPart PostRequestDto postRequestDto,
                              @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         if(userDetailsImpl.getMember() != null){
             Long memberId = userDetailsImpl.getMember().getMemberId();
-            this.postService.updatePost(post_id, postRequestDto, userDetailsImpl, memberId);
-            return "redirect:/posts";
+            this.postService.updatePost(postid, postRequestDto,userDetailsImpl, memberId);
+            return "redirect:/api/posts";
         }
         return "login";
     }
 
     // 게시물 삭제
-    @DeleteMapping("/{post_id}")
-    public String deletePost(@PathVariable Long post_id,@AuthenticationPrincipal UserDetailsImpl userDetails){
+    @DeleteMapping("/{postid}")
+    public String deletePost(@PathVariable Long postid,@AuthenticationPrincipal UserDetailsImpl userDetails){
         try{
-            postService.deletePost(post_id,userDetails);
+            postService.deletePost(postid,userDetails);
         }catch (IllegalArgumentException e){
             log.info(e.getMessage());
         }
-        return "redirect:/posts";
+        return "redirect:/api/posts";
     }
 }

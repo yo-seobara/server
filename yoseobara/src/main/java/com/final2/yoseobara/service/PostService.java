@@ -58,6 +58,7 @@ public class PostService {
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
                 .address(Float.valueOf(requestDto.getAddress())).build();
+        post.mapTomember(memberFoundById);
         postRepository.save(post);
         return post;
     }
@@ -71,7 +72,6 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
         Post postFoundById = postRepository.findById(postid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-
         postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
         postFoundById.mapTomember(memberFoundById);
         postRepository.save(postFoundById);
@@ -84,7 +84,7 @@ public class PostService {
         Post post = postRepository.findById(postid).orElseThrow(
                 () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
         String loginMember = userDetails.getMember().getUsername();
-        String author = post.getUsername();
+        String author = post.getMember().getUsername();
         if (author.equals(loginMember)) {
             postRepository.deleteById(postid);
         } else {

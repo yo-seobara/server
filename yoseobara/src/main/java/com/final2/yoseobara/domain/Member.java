@@ -58,6 +58,7 @@ public class Member extends Timestamped {
         return passwordEncoder.matches(password, this.password);
     }
     @OneToMany(fetch = FetchType.LAZY,
+            mappedBy = "member",
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     private List<Post> postList = new ArrayList<>();

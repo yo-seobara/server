@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +18,10 @@ import java.util.Collection;
 public class UserDetailsImpl implements UserDetails {
 
     private Member member;
+
+    public Member getMember() {
+        return this.member;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -53,5 +58,7 @@ public class UserDetailsImpl implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+
 }
 

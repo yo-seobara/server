@@ -15,30 +15,25 @@ public class Post extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "POST_ID")
+    @Column
     private Long postid;
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 50)
     private String title;
 
-    @Column(nullable = false)
-    private String content;
-
     @Column
-    private String username;
-
-    @ManyToOne
-    @JoinColumn(name = "member_member_id")
-    private Member member;
+    private String content;
     @Column
     private Float address;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "memberid", foreignKey = @ForeignKey(name = "FK_member_post"))
+    private Member member;
+
 
 //    @Column
 //    private List<String> images;
 
-    public void setMember(Member member) {
-        this.member = member;
-    }
+
 
     @Builder
     public Post(String title, String content,Float address) {
