@@ -1,34 +1,88 @@
-//package com.final2.yoseobara.service;
-//
-//import com.final2.yoseobara.controller.request.S3RequestDto;
-//import com.final2.yoseobara.domain.Member;
-//import com.final2.yoseobara.repository.MemberRepository;
-//import com.final2.yoseobara.repository.PostRepository;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.stereotype.Service;
-//import org.springframework.web.multipart.MultipartFile;
-//
-//import java.io.File;
-//import java.io.FileOutputStream;
-//import java.io.IOException;
-//import java.time.LocalDateTime;
-//import java.util.Objects;
-//import java.util.Optional;
-//import java.util.UUID;
-//
-//@Service
-//@RequiredArgsConstructor
-//@Slf4j
-//public class S3Service {
-//    private final AmazonS3Client amazonS3Client;
-//    private final MemberRepository memberRepository;
-//    private final PostRepository postRepository;
-//
-//    @Value("${cloud.aws.s3.bucket}")
-//    private String bucket;
-//
+package com.final2.yoseobara.service;
+
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.final2.yoseobara.exception.ErrorCode;
+import com.final2.yoseobara.exception.InvalidValueException;
+import com.final2.yoseobara.repository.MemberRepository;
+import com.final2.yoseobara.repository.PostRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class S3Service {
+    private final AmazonS3Client amazonS3Client;
+    private final MemberRepository memberRepository;
+    private final PostRepository postRepository;
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
+
+    public List<String> uploadFile(MultipartFile[] files) throws IllegalArgumentException {
+        List<String> fileUrls = new ArrayList<>();
+        for (MultipartFile file : files) {
+
+            // Objects.requireNonNull 을 사용할 수도 있음
+            if (Objects.isNull(file) || file.isEmpty()) {
+                throw new InvalidValueException(ErrorCode.FILE_NOT_FOUND);
+            }
+
+            String fileName = file.getOriginalFilename().toLowerCase();
+            String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.KOREA));
+            String saveFileName = now + "-" + fileName;
+
+            // String uuid = UUID.randomUUID().toString(); // UUID 로 파일을 저장한다면 확장자만 붙여도 괜찮음
+            String extension = fileName.substring(fileName.lastIndexOf("."));
+            String contentType = "";
+
+            try {
+                if (saveFileName.contains("..")) {
+                    throw new InvalidValueException(ErrorCode.INVALID_FILE_NAME);
+                }
+
+                if (!(fileName.endsWith(".bmp") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".png"))) {
+                    throw new InvalidValueException(ErrorCode.INVALID_IMAGE_FILE_EXTENSION);
+                }
+
+                // content type을 지정해서 올려주지 않으면 자동으로 "application/octet-stream"으로 고정이 되어
+                // 링크 클릭시 웹에서 열리는게 아니라 자동 다운이 시작됨
+                switch (extension) {
+                    case "bmp" -> contentType = "image/bmp";
+                    case "jpg" -> contentType = "image/jpg";
+                    case "jpeg" -> contentType = "text/jpeg";
+                    case "png" -> contentType = "text/png";
+                }
+
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentType(contentType);
+                metadata.setContentLength(file.getSize());
+
+                // PutObjectRequest 이용하여 파일 생성 없이 바로 업로드
+                amazonS3Client.putObject(new PutObjectRequest(bucket, saveFileName, file.getInputStream(), metadata)
+                        .withCannedAcl(CannedAccessControlList.PublicRead));
+            } catch (IOException e) {
+                throw new InvalidValueException(ErrorCode.UPLOAD_FAILED);
+            }
+            fileUrls.add(amazonS3Client.getUrl(bucket, saveFileName).toString());
+        }
+        return fileUrls;    ///url string 리턴
+    }
+}
+
+// 아래 방식의 장점은??
 //    public S3RequestDto S3UserImageUpload(MultipartFile file, Long Id, String username) throws IOException {
 //        Member memberFoundById = memberRepository.findById(Id)
 //                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
@@ -76,21 +130,6 @@
 //        return amazonS3Client.getUrl(bucket, fileName).toString();
 //    }
 //
-//    public String uploadFile(MultipartFile file) throws IllegalArgumentException {
-//        String fileName = UUID.randomUUID() + "-" + Objects.requireNonNull(file.getOriginalFilename()).toLowerCase();
-//        try {
-//            if (!(fileName.endsWith(".bmp") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".png"))) {
-//                throw new IllegalArgumentException("bmp,jpg,jpeg,png 형식의 이미지 파일이 요구됨.");
-//            }
-//            amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), null)
-//                    .withCannedAcl(CannedAccessControlList.PublicRead));
-//        } catch (IOException e) {
-//            throw new RuntimeException("S3 파일 업로드 실패.");
-//        }
-//        return amazonS3Client.getUrl(bucket, fileName).toString();    ///url string 리턴
-//    }
-//
-//
 //    private Optional<File> convert(MultipartFile file) throws IOException {
 //        File convertFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
 //        if (convertFile.createNewFile()) {
@@ -102,4 +141,4 @@
 //        return Optional.empty();
 //    }
 //}
-//
+
