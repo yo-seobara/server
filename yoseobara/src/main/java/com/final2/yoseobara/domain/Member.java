@@ -22,11 +22,12 @@ public class Member extends Timestamped {
     // ID가 자동으로 생성 및 증가합니다.
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Id
+    @Column(name = "member_id")
     private Long memberId;
 
     // 반드시 값을 가지도록 합니다.
     @Column(nullable = false)
-    private String username;
+    private String username; // 로그인 아이디, 이메일 형식
 
     @Column(nullable = false)
     @JsonIgnore

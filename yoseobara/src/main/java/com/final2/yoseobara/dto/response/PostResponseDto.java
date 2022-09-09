@@ -8,6 +8,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 @Getter
 
@@ -16,7 +17,7 @@ public class PostResponseDto {
     private String title;
     private String content;
     private String address;
-    private ArrayList<HashMap<String, Float>> location;
+    private HashMap<String, Float> location;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

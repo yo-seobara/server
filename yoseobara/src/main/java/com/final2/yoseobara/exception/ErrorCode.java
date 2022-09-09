@@ -24,6 +24,8 @@ public enum ErrorCode {
     //Post
     POST_NOT_FOUND(400, "POST_NOT_FOUND", "존재하지 않는 게시글입니다."),
     POST_UNAUTHORIZED(401, "POST_UNAUTHORIZED", "게시글에 대한 권한이 없습니다."),
+    POST_IMAGE_REQUIRED(400, "POST_IMAGE_REQUIRED", "게시글에는 이미지가 1개 이상 필요합니다."),
+    POST_IMAGE_MAX(400, "POST_IMAGE_MAX", "게시글에는 이미지가 3개까지만 가능합니다."),
 
     //Comment
     COMMENT_NOT_FOUND(400, "COMMENT_NOT_FOUND", "존재하지 않는 댓글입니다."),
@@ -37,6 +39,8 @@ public enum ErrorCode {
     NOT_PASS_VALIDATION(400, "NOT_PASS_VALIDATION", "유효성 검사를 통과하지 못했습니다."),
 
     //S3
+    FILE_NOT_FOUND(400, "FILE_NOT_FOUND", "파일이 존재하지 않습니다."),
+    INVALID_FILE_NAME(400, "INVALID_FILE_NAME", "파일명에 포함될 수 없는 문자가 포함되어 있습니다."),
     UPLOAD_FAILED(400, "UPLOAD_FAILED", "S3 Bucket 객체 업로드 실패."),
     DELETE_FAILED(400, "DELETE_FAILED", "S3 Bucket 객체 삭제 실패."),
     INVALID_IMAGE_FILE_EXTENSION(400, "INVALID_IMAGE_FILE_EXTENSION", "bmp,jpg,jpeg,png 형식의 이미지 파일이 요구됨.");

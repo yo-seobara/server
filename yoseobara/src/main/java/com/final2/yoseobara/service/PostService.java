@@ -49,46 +49,49 @@ public class PostService {
     }
 
     // Post 생성
-    @Transactional
-    public Post createPost(PostRequestDto requestDto,
-                           Long memberId) {
+    public Post createPost(PostRequestDto requestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
+
         Post post = Post.builder()
+                .member(memberFoundById)
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
-                .address(Float.valueOf(requestDto.getAddress())).build();
+                .address(requestDto.getAddress())
+                .location(requestDto.getLocation())
+                .imageUrls(imageUrls)
+                .build();
         postRepository.save(post);
         return post;
     }
 
     // Post 수정
-    @Transactional
-    public PostResponseDto updatePost(Long postid,
-                                      PostRequestDto postRequestDto,
-                                      UserDetailsImpl userDetailsImpl, Long memberId) {
-        Member memberFoundById = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
-        Post postFoundById = postRepository.findById(postid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-
-        postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
-        postFoundById.mapToMember(memberFoundById);
-        postRepository.save(postFoundById);
-        return PostResponseDto.builder().post(postFoundById).build();
-    }
-
-    // Post 삭제
-    @Transactional
-    public void deletePost(Long postid, UserDetailsImpl userDetails) throws IllegalArgumentException {
-        Post post = postRepository.findById(postid).orElseThrow(
-                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-        String loginMember = userDetails.getMember().getUsername();
-        String author = post.getUsername();
-        if (author.equals(loginMember)) {
-            postRepository.deleteById(postid);
-        } else {
-            throw new IllegalArgumentException("해당 게시글에 대한 삭제 권한이 없습니다.");
-        }
-    }
+//    @Transactional
+//    public PostResponseDto updatePost(Long postid,
+//                                      PostRequestDto postRequestDto,
+//                                      UserDetailsImpl userDetailsImpl, Long memberId) {
+//        Member memberFoundById = memberRepository.findById(memberId)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
+//        Post postFoundById = postRepository.findById(postid)
+//                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+//
+//        postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
+//        postFoundById.mapToMember(memberFoundById);
+//        postRepository.save(postFoundById);
+//        return PostResponseDto.builder().post(postFoundById).build();
+//    }
+//
+//    // Post 삭제
+//    @Transactional
+//    public void deletePost(Long postid, UserDetailsImpl userDetails) throws IllegalArgumentException {
+//        Post post = postRepository.findById(postid).orElseThrow(
+//                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+//        String loginMember = userDetails.getMember().getUsername();
+//        String author = post.getUsername();
+//        if (author.equals(loginMember)) {
+//            postRepository.deleteById(postid);
+//        } else {
+//            throw new IllegalArgumentException("해당 게시글에 대한 삭제 권한이 없습니다.");
+//        }
+//    }
 }
