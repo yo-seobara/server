@@ -7,13 +7,19 @@ import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.domain.UserDetailsImpl;
+import com.final2.yoseobara.dto.response.ResponseDto;
+import com.final2.yoseobara.exception.ErrorCode;
+import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -21,7 +27,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
-//    private final S3Service s3Service;
+    private final S3Service s3Service;
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
@@ -45,53 +51,94 @@ public class PostService {
         );
         return PostResponseDto.builder()
                 .post(post)
+                //.view(post.getView())
+                //.heart(post.getHeart())
+                .nickname(post.getMember().getNickname())
                 .build();
     }
 
     // Post 생성
     public Post createPost(PostRequestDto requestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다.")); // 에러코드 수정
 
+        // 게시물 생성
         Post post = Post.builder()
-                .member(memberFoundById)
+                //.member(memberFoundById)
                 .title(requestDto.getTitle())
                 .content(requestDto.getContent())
                 .address(requestDto.getAddress())
                 .location(requestDto.getLocation())
                 .imageUrls(imageUrls)
                 .build();
+        // 멤버 정보 추가
+        post.mapToMember(memberFoundById);
+        // DB에 저장
         postRepository.save(post);
         return post;
     }
 
-    // Post 수정
-//    @Transactional
-//    public PostResponseDto updatePost(Long postid,
-//                                      PostRequestDto postRequestDto,
-//                                      UserDetailsImpl userDetailsImpl, Long memberId) {
-//        Member memberFoundById = memberRepository.findById(memberId)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다."));
-//        Post postFoundById = postRepository.findById(postid)
-//                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-//
-//        postFoundById.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress());
-//        postFoundById.mapToMember(memberFoundById);
-//        postRepository.save(postFoundById);
-//        return PostResponseDto.builder().post(postFoundById).build();
-//    }
-//
-//    // Post 삭제
-//    @Transactional
-//    public void deletePost(Long postid, UserDetailsImpl userDetails) throws IllegalArgumentException {
-//        Post post = postRepository.findById(postid).orElseThrow(
-//                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
-//        String loginMember = userDetails.getMember().getUsername();
-//        String author = post.getUsername();
-//        if (author.equals(loginMember)) {
-//            postRepository.deleteById(postid);
-//        } else {
-//            throw new IllegalArgumentException("해당 게시글에 대한 삭제 권한이 없습니다.");
-//        }
-//    }
+    // Post 수정 -> 이미지 수정 어떤 방식으로 할까
+    @Transactional
+    public PostResponseDto updatePost(Long postId, PostRequestDto postRequestDto, Long memberId, MultipartFile[] newImages) {
+
+        // 로그인된 유저
+        Member memberFoundById = memberRepository.findById(memberId)
+                .orElseThrow(() -> new InvalidValueException(ErrorCode.USER_NOT_FOUND));
+
+        // 타겟 게시물 학인
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
+
+        // 로그인된 유저와 게시글 작성자가 같은지 확인
+        if (!Objects.equals(memberFoundById.getMemberId(), post.getMember().getMemberId())) {
+            throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
+        }
+
+        // 이미지가 존재하면 S3와 DB 업데이트
+        if (newImages != null) {
+            // 새로운 이미지 3개 이하
+            if(newImages.length > 3) {
+                throw new InvalidValueException(ErrorCode.POST_IMAGE_MAX);
+            }
+
+            List<String> imageUrls = s3Service.updateFile(post.getImageUrls(), newImages);
+            post.setImageUrls(imageUrls);
+        }
+
+        // 나머지 데이터 업데이트
+        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress(),
+                postRequestDto.getLocation());
+        // 멤버 정보 추가
+        post.mapToMember(memberFoundById);
+        // DB에 저장
+        postRepository.save(post);
+
+        return PostResponseDto.builder().post(post).build();
+    }
+
+    // Post 삭제
+    @Transactional
+    public void deletePost(Long postId, Long memberId) throws IllegalArgumentException {
+
+        // 로그인된 유저 객체
+        Member memberFoundById = memberRepository.findById(memberId)
+                .orElseThrow(() -> new InvalidValueException(ErrorCode.USER_NOT_FOUND));
+        // 타겟 게시물
+        Post postFoundById = postRepository.findById(postId)
+                .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
+
+        // 로그인된 유저와 게시글 작성자가 같은지 확인
+        if (!Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId())) {
+            throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
+        }
+
+        // 게시물 이미지 삭제
+        for (String imageUrl : postFoundById.getImageUrls()) {
+            s3Service.deleteFile(imageUrl);
+        }
+
+        // 게시물 데이터 삭제
+        postRepository.delete(postFoundById);
+    }
 }

@@ -14,9 +14,9 @@ spring:
     password: ${jdbc.password}
 
   jpa:
+    show_sql: true
     hibernate:
       format_sql: true
-      show_sql: true
       ddl-auto: update
 
 logging:

@@ -36,7 +36,10 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String nickname;
 
-//    private List<String> images;
+    // OneToMany 는 기본적으로 LAZY 로딩, 매번 직접 추가해줘야 하는지?
+    @OneToMany(mappedBy = "member")
+    @JsonIgnore
+    private List<Post> posts;
 
     @Override
     public boolean equals(Object o) {
@@ -58,17 +61,11 @@ public class Member extends Timestamped {
     public boolean validatePassword(PasswordEncoder passwordEncoder, String password) {
         return passwordEncoder.matches(password, this.password);
     }
-    @OneToMany(fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    private List<Post> postList = new ArrayList<>();
-    public void mapToContents(Post post) {
-        postList.add(post);
-    }
 
-//    public void mapToMember(List<String> userImages) {
-//        this.images = userImages;
-//    }
+    // 포스트 리스트 추가
+    public void mapToPost(final Post post) {
+        posts.add(post);
+    }
 }
 
 

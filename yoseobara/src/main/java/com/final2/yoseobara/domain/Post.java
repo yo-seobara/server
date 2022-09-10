@@ -4,6 +4,7 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -14,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @Getter // get 함수를 일괄적으로 만들어줍니다.
+@Setter
 @NoArgsConstructor // 기본 생성자를 만들어줍니다.
 @Entity // DB 테이블 역할을 합니다.
 @TypeDef(name = "json", typeClass = JsonType.class)
@@ -40,8 +42,12 @@ public class Post extends Timestamped {
     @Type(type = "json") // 괜찮은 건지 모르겠음. 작동되는 것 보고 수정할 듯
     private HashMap<String,Float> location;
 
-    @Column
-    @ElementCollection(targetClass = String.class) // 나중에 썸네일만 받고, 이미지들은 따로 엔티티를 만들어 맵핑하여 관리하는 게 좋겠다.
+//    @Column(name = "image_urls") // post_image_urls 테이블이 생김
+//    @ElementCollection(targetClass = String.class) // 값 타입 컬렉션 맵, 기본적으로 OneToMany
+//    private List<String> imageUrls;
+
+    @Column(columnDefinition = "json")
+    @Type(type = "json") // json 으로 리스트 넣음. 괜찮은지 모름
     private List<String> imageUrls;
 
     public void setMember(Member member) {
@@ -49,8 +55,8 @@ public class Post extends Timestamped {
     }
 
     @Builder
-    public Post(Member member, String title, String content,String address, HashMap<String,Float> location, List<String> imageUrls) {
-        this.member = member;
+    public Post(String title, String content,String address, HashMap<String,Float> location, List<String> imageUrls) {
+        //this.member = member;
         this.title = title;
         this.content = content;
         this.address = address;
@@ -60,21 +66,21 @@ public class Post extends Timestamped {
         this.imageUrls = imageUrls;
     }
 
-    public void update(Member member, String title, String content, String address, HashMap<String,Float> location, List<String> imageUrls) {
-        this.member = member;
+    // 멤버는 어차피 권한 확인 하는데 필요하나? 위에 거랑 이거 중간에 Dto로 묶는 게 나을 듯?
+    public void update(String title, String content, String address, HashMap<String,Float> location) {
+        //this.member = member;
         this.title = title;
         this.content = content;
         this.address = address;
         this.location.replace("lat",location.get("lat"));
         this.location.replace("lng",location.get("lng"));
-        this.imageUrls = imageUrls;
     }
 
-    public void mapToMember(Member memberFoundById) {
-        this.member = memberFoundById;
-        memberFoundById.mapToContents(this);
+    // 멤버 정보 추가 ?? 굳이 메소드 만드는 이유? 빌더에서 그냥 넣으면 안되나?
+    public void mapToMember(Member member) {
+        this.member = member;
+        member.mapToPost(this);
     }
-
 }
 
 

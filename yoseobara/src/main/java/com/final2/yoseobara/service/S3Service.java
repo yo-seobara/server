@@ -14,9 +14,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -31,6 +34,7 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    // 이미지 업로드
     public List<String> uploadFile(MultipartFile[] files) throws IllegalArgumentException {
         List<String> fileUrls = new ArrayList<>();
         for (MultipartFile file : files) {
@@ -62,8 +66,8 @@ public class S3Service {
                 switch (extension) {
                     case "bmp" -> contentType = "image/bmp";
                     case "jpg" -> contentType = "image/jpg";
-                    case "jpeg" -> contentType = "text/jpeg";
-                    case "png" -> contentType = "text/png";
+                    case "jpeg" -> contentType = "image/jpeg";
+                    case "png" -> contentType = "image/png";
                 }
 
                 ObjectMetadata metadata = new ObjectMetadata();
@@ -76,9 +80,33 @@ public class S3Service {
             } catch (IOException e) {
                 throw new InvalidValueException(ErrorCode.UPLOAD_FAILED);
             }
-            fileUrls.add(amazonS3Client.getUrl(bucket, saveFileName).toString());
+            // URL 받아올 때 한글 파일명 깨짐 방지
+            fileUrls.add(URLDecoder.decode(amazonS3Client.getUrl(bucket, saveFileName).toString(), StandardCharsets.UTF_8));
         }
-        return fileUrls;    ///url string 리턴
+        return fileUrls; // url string 리턴
+    }
+
+    // 이미지 삭제
+    public void deleteFile(String fileUrl) {
+        try {
+            // url에서 파일명만 추출
+            amazonS3Client.deleteObject(bucket, fileUrl.split("/")[3]);
+        } catch (Exception e) {
+            throw new InvalidValueException(ErrorCode.DELETE_FAILED);
+        }
+    }
+
+    // 이미지 수정 -> 기존 이미지 삭제 후 새 이미지 업로드 ( 더 좋은 방법은? )
+    @Transactional
+    public List<String> updateFile(List<String> deleteFileUrls, MultipartFile[] newFiles) {
+        // 기존 파일 삭제
+        if (deleteFileUrls != null) {
+            for (String fileUrl : deleteFileUrls) {
+                deleteFile(fileUrl);
+            }
+        }
+        // 새 이미지 업로드
+        return uploadFile(newFiles); // url string 리턴
     }
 }
 

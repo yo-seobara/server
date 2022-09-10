@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 @Getter
 
@@ -23,6 +24,8 @@ public class PostResponseDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime modifiedAt;
 
+    private List<String> imageUrls;
+
     private Long view; // 조회수 계산
     private Long heart; // 좋아요 계산
     private String nickname; // 로그인된 작성자의 닉네임 받아오기
@@ -36,6 +39,7 @@ public class PostResponseDto {
         this.location = post.getLocation();
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
+        this.imageUrls = post.getImageUrls();
         this.view = view;
         this.heart = heart;
         this.nickname = nickname;

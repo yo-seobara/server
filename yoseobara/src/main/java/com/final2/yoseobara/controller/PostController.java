@@ -1,5 +1,6 @@
 package com.final2.yoseobara.controller;
 
+import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -32,8 +34,8 @@ public class PostController {
     // 게시글 작성
     @PostMapping
     public ResponseDto<?> createPost(@RequestPart PostRequestDto postRequestDto,
-                                                   @RequestPart(required = false) MultipartFile[] images,
-                                                   @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
+                                     @RequestPart(required = false) MultipartFile[] images,
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
         // 로그인 확인
         if(userDetailsImpl.getMember() == null){
             return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
@@ -63,32 +65,52 @@ public class PostController {
 
     // 게시물 상세 조회
     @ResponseBody
-    @GetMapping("/{post_id}")
-    public PostResponseDto getPost(@PathVariable Long post_id){
-        return postService.getPost(post_id);
+    @GetMapping("/{postId}")
+    public PostResponseDto getPost(@PathVariable Long postId){
+        return postService.getPost(postId);
     }
 
-//    // 게시물 수정
-//    @PutMapping
-//    public String updatePost(@PathVariable(name = "post_id") Long post_id,
-//                             @RequestPart PostRequestDto postRequestDto,
-//                             @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
-//        if(userDetailsImpl.getMember() != null){
-//            Long memberId = userDetailsImpl.getMember().getMemberId();
-//            this.postService.updatePost(post_id, postRequestDto, userDetailsImpl, memberId);
-//            return "redirect:/posts";
-//        }
-//        return "login";
-//    }
-//
-//    // 게시물 삭제
-//    @DeleteMapping("/{post_id}")
-//    public String deletePost(@PathVariable Long post_id,@AuthenticationPrincipal UserDetailsImpl userDetails){
-//        try{
-//            postService.deletePost(post_id,userDetails);
-//        }catch (IllegalArgumentException e){
-//            log.info(e.getMessage());
-//        }
-//        return "redirect:/posts";
-//    }
+    // 게시물 수정
+    @PutMapping("/{postId}")
+    public ResponseDto<?> updatePost(@PathVariable Long postId,
+                                     @RequestPart PostRequestDto postRequestDto,
+                                     @RequestPart(required = false) MultipartFile[] newImages,
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+
+        // 로그인 확인
+        if(userDetailsImpl.getMember() == null){
+            return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
+        }
+
+        // 로그인된 유저의 아이디
+        Long memberId = userDetailsImpl.getMember().getMemberId();
+
+        // 타겟 게시물 수정 (새 이미지 있을 때, 없을 때 상관 없음)
+        PostResponseDto post = postService.updatePost(postId, postRequestDto, memberId, newImages);
+
+        return ResponseDto.success(post);
+    }
+
+    // 게시물 삭제
+    @DeleteMapping("/{postId}")
+    public ResponseDto<?> deletePost(@PathVariable Long postId,
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
+
+        // 로그인 확인
+        if(userDetailsImpl.getMember() == null){
+            return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
+        }
+
+        // 로그인된 유저의 아이디
+        Long memberId = userDetailsImpl.getMember().getMemberId();
+
+        // 게시물 데이터 삭제
+        try{
+            postService.deletePost(postId, memberId);
+        } catch (IllegalArgumentException e){
+            return ResponseDto.fail(ErrorCode.DELETE_FAILED);
+        }
+
+        return ResponseDto.success(postId + "번 게시물이 삭제되었습니다.");
+    }
 }
