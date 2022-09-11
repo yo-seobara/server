@@ -58,7 +58,7 @@ public class PostService {
     }
 
     // Post 생성
-    public Post createPost(PostRequestDto requestDto, List<String> imageUrls, Long memberId) {
+    public PostResponseDto createPost(PostRequestDto requestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다.")); // 에러코드 수정
 
@@ -75,7 +75,14 @@ public class PostService {
         post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
-        return post;
+
+        PostResponseDto postResponseDto = PostResponseDto.builder()
+                .post(post)
+                .view(0L)
+                .heart(0L)
+                .nickname(memberFoundById.getNickname())
+                .build();
+        return postResponseDto;
     }
 
     // Post 수정 -> 이미지 수정 어떤 방식으로 할까
@@ -102,8 +109,11 @@ public class PostService {
                 throw new InvalidValueException(ErrorCode.POST_IMAGE_MAX);
             }
 
-            List<String> imageUrls = s3Service.updateFile(post.getImageUrls(), newImages);
-            post.setImageUrls(imageUrls);
+            List<String> imageUrls = s3Service.updateFile(post.getImageUrls(), post.getThumbnailUrl(), newImages);
+            // 서브리스트 문제 때문에 임시로 만든 변수
+            List<String> temp = new ArrayList<>(imageUrls.subList(1, imageUrls.size()));
+            post.setImageUrls(temp);
+            post.setThumbnailUrl(imageUrls.get(0));
         }
 
         // 나머지 데이터 업데이트
@@ -137,6 +147,8 @@ public class PostService {
         for (String imageUrl : postFoundById.getImageUrls()) {
             s3Service.deleteFile(imageUrl);
         }
+        // 썸네일 이미지 삭제
+        s3Service.deleteFile(postFoundById.getThumbnailUrl());
 
         // 게시물 데이터 삭제
         postRepository.delete(postFoundById);
