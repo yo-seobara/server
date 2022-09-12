@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.name.Rename;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -116,7 +117,7 @@ public class S3Service {
         // 새 이미지 업로드
         return uploadFile(newFiles); // url string 리턴
     }
-
+    
     // 썸네일 파일 업로드
     public String uploadThumbnail(MultipartFile file, String saveFileName, String contentType) {
         String thumbnailFileName;

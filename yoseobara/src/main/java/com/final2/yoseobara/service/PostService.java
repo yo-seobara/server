@@ -75,7 +75,7 @@ public class PostService {
         post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
-
+        
         PostResponseDto postResponseDto = PostResponseDto.builder()
                 .post(post)
                 .view(0L)
@@ -147,6 +147,7 @@ public class PostService {
         for (String imageUrl : postFoundById.getImageUrls()) {
             s3Service.deleteFile(imageUrl);
         }
+        
         // 썸네일 이미지 삭제
         s3Service.deleteFile(postFoundById.getThumbnailUrl());
 

@@ -23,7 +23,6 @@ public class PostResponseDto {
     private final LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime modifiedAt;
-
     private List<String> imageUrls;
     private String thumbnailUrl;
 
