@@ -1,6 +1,7 @@
 package com.final2.yoseobara.service;
 
 import com.final2.yoseobara.dto.request.LoginRequestDto;
+import com.final2.yoseobara.dto.request.NicknameRequestDto;
 import com.final2.yoseobara.dto.request.TokenDto;
 import com.final2.yoseobara.dto.request.MemberRequestDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
