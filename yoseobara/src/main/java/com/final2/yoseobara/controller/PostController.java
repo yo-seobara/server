@@ -70,6 +70,12 @@ public class PostController {
         return postService.getPost(postId);
     }
 
+    // 게시물 페이지네이션
+    @GetMapping("/paging")
+    public List<PostResponseDto> getPostListPaging(@RequestParam int page){
+        return null;
+    }
+
     // 게시물 수정
     @PutMapping("/{postId}")
     public ResponseDto<?> updatePost(@PathVariable Long postId,
