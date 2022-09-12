@@ -1,4 +1,4 @@
-package com.final2.yoseobara.controller.request;
+package com.final2.yoseobara.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

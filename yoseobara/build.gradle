@@ -36,6 +36,19 @@ dependencies {
 
 //     validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // AWS
+    // implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+    // implementation 'com.amazonaws:aws-java-sdk:1.12.296'
+    implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
+
+    // data type
+    implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.17.3'
+    implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate5', version: '2.13.3'
+
+    // hibernate - spatial
+    // implementation 'org.hibernate:hibernate-spatial:6.1.2.Final'
 }
 
 tasks.named('test') {

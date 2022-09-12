@@ -9,6 +9,8 @@ import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Builder
@@ -20,11 +22,12 @@ public class Member extends Timestamped {
     // ID가 자동으로 생성 및 증가합니다.
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Id
+    @Column(name = "member_id")
     private Long memberId;
 
     // 반드시 값을 가지도록 합니다.
     @Column(nullable = false)
-    private String username;
+    private String username; // 로그인 아이디, 이메일 형식
 
     @Column(nullable = false)
     @JsonIgnore
@@ -32,6 +35,11 @@ public class Member extends Timestamped {
 
     @Column(nullable = false)
     private String nickname;
+
+    // OneToMany 는 기본적으로 LAZY 로딩, 매번 직접 추가해줘야 하는지?
+    @OneToMany(mappedBy = "member")
+    @JsonIgnore
+    private List<Post> posts;
 
     @Override
     public boolean equals(Object o) {
@@ -54,5 +62,10 @@ public class Member extends Timestamped {
         return passwordEncoder.matches(password, this.password);
     }
 
+    // 포스트 리스트 추가
+    public void mapToPost(final Post post) {
+        posts.add(post);
+    }
 }
+
 

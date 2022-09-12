@@ -1,7 +1,7 @@
 package com.final2.yoseobara.jwt;
 
-import com.final2.yoseobara.controller.request.TokenDto;
-import com.final2.yoseobara.controller.response.ResponseDto;
+import com.final2.yoseobara.dto.request.TokenDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.RefreshToken;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.UserDetailsImpl;

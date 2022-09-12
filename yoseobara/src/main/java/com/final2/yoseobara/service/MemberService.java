@@ -1,11 +1,10 @@
 package com.final2.yoseobara.service;
 
-import com.final2.yoseobara.controller.request.LoginRequestDto;
-import com.final2.yoseobara.controller.request.NicknameRequestDto;
-import com.final2.yoseobara.controller.request.TokenDto;
-import com.final2.yoseobara.controller.request.MemberRequestDto;
-import com.final2.yoseobara.controller.response.ResponseDto;
-import com.final2.yoseobara.controller.response.MemberResponseDto;
+import com.final2.yoseobara.dto.request.LoginRequestDto;
+import com.final2.yoseobara.dto.request.TokenDto;
+import com.final2.yoseobara.dto.request.MemberRequestDto;
+import com.final2.yoseobara.dto.response.ResponseDto;
+import com.final2.yoseobara.dto.response.MemberResponseDto;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.jwt.TokenProvider;
