@@ -50,6 +50,9 @@ public class Post extends Timestamped {
     @Type(type = "json") // json 으로 리스트 넣음. 괜찮은지 모름
     private List<String> imageUrls;
 
+    @Column
+    private String thumbnailUrl;
+
     public void setMember(Member member) {
         this.member = member;
     }
@@ -63,7 +66,10 @@ public class Post extends Timestamped {
         this.location = new LinkedHashMap<>();
         this.location.put("lat",location.get("lat"));
         this.location.put("lng",location.get("lng"));
-        this.imageUrls = imageUrls;
+        // 서브리스트 문제 때문에 임시로 만든 변수
+        List<String> temp = new ArrayList<>(imageUrls.subList(1,imageUrls.size()));
+        this.imageUrls = temp;
+        this.thumbnailUrl = imageUrls.get(0);
     }
 
     // 멤버는 어차피 권한 확인 하는데 필요하나? 위에 거랑 이거 중간에 Dto로 묶는 게 나을 듯?

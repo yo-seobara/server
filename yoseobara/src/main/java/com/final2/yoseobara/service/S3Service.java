@@ -10,14 +10,17 @@ import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.name.Rename;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
 import javax.transaction.Transactional;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -64,15 +67,20 @@ public class S3Service {
                 // content type을 지정해서 올려주지 않으면 자동으로 "application/octet-stream"으로 고정이 되어
                 // 링크 클릭시 웹에서 열리는게 아니라 자동 다운이 시작됨
                 switch (extension) {
-                    case "bmp" -> contentType = "image/bmp";
-                    case "jpg" -> contentType = "image/jpg";
-                    case "jpeg" -> contentType = "image/jpeg";
-                    case "png" -> contentType = "image/png";
+                    case ".bmp" -> contentType = "image/bmp";
+                    case ".jpg" -> contentType = "image/jpg";
+                    case ".jpeg" -> contentType = "image/jpeg";
+                    case ".png" -> contentType = "image/png";
                 }
 
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentType(contentType);
                 metadata.setContentLength(file.getSize());
+
+                // 첫번째 파일로 썸네일 생성
+                if (file.equals(files[0])) {
+                    fileUrls.add(uploadThumbnail(file, saveFileName, contentType));
+                }
 
                 // PutObjectRequest 이용하여 파일 생성 없이 바로 업로드
                 amazonS3Client.putObject(new PutObjectRequest(bucket, saveFileName, file.getInputStream(), metadata)
@@ -83,7 +91,7 @@ public class S3Service {
             // URL 받아올 때 한글 파일명 깨짐 방지
             fileUrls.add(URLDecoder.decode(amazonS3Client.getUrl(bucket, saveFileName).toString(), StandardCharsets.UTF_8));
         }
-        return fileUrls; // url string 리턴
+        return fileUrls; // url string 리턴 (썸네일 포함)
     }
 
     // 이미지 삭제
@@ -98,15 +106,52 @@ public class S3Service {
 
     // 이미지 수정 -> 기존 이미지 삭제 후 새 이미지 업로드 ( 더 좋은 방법은? )
     @Transactional
-    public List<String> updateFile(List<String> deleteFileUrls, MultipartFile[] newFiles) {
+    public List<String> updateFile(List<String> deleteFileUrls, String deleteThumbnailUrl, MultipartFile[] newFiles) {
         // 기존 파일 삭제
         if (deleteFileUrls != null) {
             for (String fileUrl : deleteFileUrls) {
                 deleteFile(fileUrl);
             }
+            deleteFile(deleteThumbnailUrl);
         }
         // 새 이미지 업로드
         return uploadFile(newFiles); // url string 리턴
+    }
+    
+    // 썸네일 파일 업로드
+    public String uploadThumbnail(MultipartFile file, String saveFileName, String contentType) {
+        String thumbnailFileName;
+        try {
+            // S3를 위한 썸네일 이미지 만들기
+            BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+            BufferedImage thumbnail = Thumbnails.of(bufferedImage).size(200, 200).asBufferedImage();
+            ByteArrayOutputStream thumbOutput = new ByteArrayOutputStream();
+            String imageType = contentType;
+            ImageIO.write(thumbnail, Objects.requireNonNull(imageType.substring(imageType.indexOf("/") + 1)), thumbOutput);
+
+            // 썸네일 메타데이터
+            ObjectMetadata thumbnailMetadata = new ObjectMetadata();
+            byte[] thumbnailBytes = thumbOutput.toByteArray();
+            thumbnailMetadata.setContentLength(thumbnailBytes.length);
+            thumbnailMetadata.setContentType(contentType);
+
+            // 썸네일 파일명
+            thumbnailFileName = String.valueOf(new StringBuilder(saveFileName).insert(saveFileName.indexOf("."), "(thumbnail)"));
+
+            // 썸네일 업로드
+            InputStream thumbnailInput = new ByteArrayInputStream(thumbnailBytes);
+            amazonS3Client.putObject(new PutObjectRequest(bucket, thumbnailFileName, thumbnailInput, thumbnailMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+
+            thumbnailInput.close();
+            thumbOutput.close();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new InvalidValueException(ErrorCode.UPLOAD_FAILED);
+        }
+        return URLDecoder.decode(amazonS3Client.getUrl(bucket, thumbnailFileName).toString(), StandardCharsets.UTF_8);
     }
 }
 

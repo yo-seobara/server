@@ -23,8 +23,8 @@ public class PostResponseDto {
     private final LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime modifiedAt;
-
     private List<String> imageUrls;
+    private String thumbnailUrl;
 
     private Long view; // 조회수 계산
     private Long heart; // 좋아요 계산
@@ -40,6 +40,7 @@ public class PostResponseDto {
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
         this.imageUrls = post.getImageUrls();
+        this.thumbnailUrl = post.getThumbnailUrl();
         this.view = view;
         this.heart = heart;
         this.nickname = nickname;

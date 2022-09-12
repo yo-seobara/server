@@ -43,9 +43,12 @@ dependencies {
     implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
     implementation 'com.amazonaws:aws-java-sdk-s3'
 
-    // data type
+    // jackson type
     implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.17.3'
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-hibernate5', version: '2.13.3'
+
+    // thumnailator
+    implementation 'net.coobird:thumbnailator:0.4.17'
 
     // hibernate - spatial
     // implementation 'org.hibernate:hibernate-spatial:6.1.2.Final'
