@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
@@ -59,6 +58,20 @@ public class MemberService {
     }
 
     @Transactional
+    public int nicknameCheck(NicknameRequestDto nicknameRequestDto) {
+
+        int result = 0; // 닉네임 사용가능
+
+        if (null != isPresentNickname(nicknameRequestDto.getNickname())) {
+            result = 1; // 닉네임 사용불가(중복됨)
+        }
+
+        return result;
+    }
+
+
+
+    @Transactional
     public ResponseDto<?> login(LoginRequestDto requestDto, HttpServletResponse response) {
         Member member = isPresentMember(requestDto.getUsername());
         if (null == member) {
@@ -83,6 +96,9 @@ public class MemberService {
                         .build()
         );
     }
+
+
+
 
 
 
