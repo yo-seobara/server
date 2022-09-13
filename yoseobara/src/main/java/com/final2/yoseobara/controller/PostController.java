@@ -12,6 +12,10 @@ import com.final2.yoseobara.service.PostService;
 import com.final2.yoseobara.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,22 +62,29 @@ public class PostController {
     }
 
     // 게시글 전체 조회
-    @GetMapping
-    public List<PostResponseDto> getPostList(){
-        return postService.getPostList();
+    @GetMapping("/all")
+    public ResponseDto<?> getPostList(){
+        return ResponseDto.success(postService.getPostList());
     }
 
     // 게시물 상세 조회
     @ResponseBody
     @GetMapping("/{postId}")
-    public PostResponseDto getPost(@PathVariable Long postId){
-        return postService.getPost(postId);
+    public ResponseDto<?> getPost(@PathVariable Long postId){
+        return ResponseDto.success(postService.getPost(postId));
     }
 
-    // 게시물 페이지네이션
-    @GetMapping("/paging")
-    public List<PostResponseDto> getPostListPaging(@RequestParam int page){
-        return null;
+    // 메인페이지 리스팅 (무한스크롤 슬라이스)
+    // search 는 검색할 항목, keyword 는 검색 키워드, 파라미터 null 이면 빈문자열 보냄
+    // 정렬은 pageable 의 sort 에서 설정
+    // 정렬 기준과 방향을 파라미터로 받고, 정렬 기준이 없거나 같은 값이 나와도 디폴트는 최신순임
+    // 페이저블 파라미터 아예 없을 때(디폴트)는 최신순, 10개씩, 첫페이지 반환
+    @GetMapping
+    public ResponseDto<?> getPostSlice(@RequestParam(value = "search", defaultValue = "") String search,
+                                       @RequestParam(value = "keyword", defaultValue = "") String keyword,
+                                       @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        //Slice<Post> postSlice = postRepository.findAll(pageable);
+        return ResponseDto.success(postService.getPostSlice(search, keyword, pageable));
     }
 
     // 게시물 수정
