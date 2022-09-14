@@ -1,5 +1,6 @@
 package com.final2.yoseobara.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,13 +35,14 @@ public class Post extends Timestamped {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
+    @JsonIgnore
     private Member member;
     @Column
     private String address; // 주소
 
     @Column(columnDefinition = "json") // 원하는 것 -> { Lat: 좌표값, lng: 좌표값 }
     @Type(type = "json") // 괜찮은 건지 모르겠음. 작동되는 것 보고 수정할 듯
-    private HashMap<String,Float> location;
+    private HashMap<String,Double> location;
 
 //    @Column(name = "image_urls") // post_image_urls 테이블이 생김
 //    @ElementCollection(targetClass = String.class) // 값 타입 컬렉션 맵, 기본적으로 OneToMany
@@ -53,12 +55,16 @@ public class Post extends Timestamped {
     @Column
     private String thumbnailUrl;
 
+    private Long view; // 계산된 조회수
+    private Long heart; // 계산된 좋아요
+
+
     public void setMember(Member member) {
         this.member = member;
     }
 
     @Builder
-    public Post(String title, String content,String address, HashMap<String,Float> location, List<String> imageUrls) {
+    public Post(String title, String content,String address, HashMap<String,Double> location, List<String> imageUrls) {
         //this.member = member;
         this.title = title;
         this.content = content;
@@ -70,10 +76,12 @@ public class Post extends Timestamped {
         List<String> temp = new ArrayList<>(imageUrls.subList(1,imageUrls.size()));
         this.imageUrls = temp;
         this.thumbnailUrl = imageUrls.get(0);
+        this.view = 0L;
+        this.heart = 0L;
     }
 
     // 멤버는 어차피 권한 확인 하는데 필요하나? 위에 거랑 이거 중간에 Dto로 묶는 게 나을 듯?
-    public void update(String title, String content, String address, HashMap<String,Float> location) {
+    public void update(String title, String content, String address, HashMap<String,Double> location) {
         //this.member = member;
         this.title = title;
         this.content = content;

@@ -13,6 +13,6 @@ public class PostRequestDto {
     private String title;
     private String content;
     private String address;
-    private HashMap<String,Float> location;
+    private HashMap<String,Double> location;
 
 }

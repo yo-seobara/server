@@ -14,11 +14,11 @@ import java.util.List;
 @Getter
 
 public class PostResponseDto {
-    private Long postid;
+    private Long postId;
     private String title;
     private String content;
     private String address;
-    private HashMap<String, Float> location;
+    private HashMap<String, Double> location;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private final LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -31,18 +31,18 @@ public class PostResponseDto {
     private String nickname; // 로그인된 작성자의 닉네임 받아오기
 
     @Builder // 이미지와 썸네일 추가하기
-    public PostResponseDto(Post post, Long view, Long heart, String nickname) {
-        this.postid = post.getPostId();
+    public PostResponseDto(Post post, List<String> imageUrls, String nickname) {
+        this.postId = post.getPostId();
         this.title = post.getTitle();
         this.content = post.getContent();
         this.address = post.getAddress();
         this.location = post.getLocation();
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
-        this.imageUrls = post.getImageUrls();
+        this.imageUrls = imageUrls;
         this.thumbnailUrl = post.getThumbnailUrl();
-        this.view = view;
-        this.heart = heart;
+        this.view = post.getView();
+        this.heart = post.getHeart();
         this.nickname = nickname;
     }
 }
