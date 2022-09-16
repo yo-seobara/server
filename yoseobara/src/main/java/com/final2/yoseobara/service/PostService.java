@@ -169,7 +169,7 @@ public class PostService {
             return "주소를 찾을 수 없습니다.";
         }
 
-        if (result.getAddress().getCountry() != "대한민국") {
+        if (!Objects.equals(result.getAddress().getCountry(), "대한민국")) {
             return result.getDisplay_name();
         }
 
