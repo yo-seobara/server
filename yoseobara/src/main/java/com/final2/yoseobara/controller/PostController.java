@@ -1,6 +1,7 @@
 package com.final2.yoseobara.controller;
 
 import com.final2.yoseobara.domain.Post;
+import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
@@ -73,6 +74,13 @@ public class PostController {
     public ResponseDto<?> getPost(@PathVariable Long postId){
         return ResponseDto.success(postService.getPost(postId));
     }
+
+    // 게시물 범위내 조회
+    @PostMapping("/bounds")
+    public ResponseDto<?> getPostListByBounds(@RequestBody MapRequestDto mapRequestDto){
+        return ResponseDto.success(postService.getPostListByBounds(mapRequestDto));
+    }
+
 
     // 메인페이지 리스팅 (무한스크롤 슬라이스)
     // search 는 검색할 항목, keyword 는 검색 키워드, 파라미터 null 이면 빈문자열 보냄

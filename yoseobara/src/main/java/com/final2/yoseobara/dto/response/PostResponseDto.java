@@ -36,7 +36,9 @@ public class PostResponseDto {
         this.title = post.getTitle();
         this.content = post.getContent();
         this.address = post.getAddress();
-        this.location = post.getLocation();
+        this.location = new HashMap<>();
+        this.location.put("lng", post.getLng());
+        this.location.put("lat", post.getLat());
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
         this.imageUrls = imageUrls;

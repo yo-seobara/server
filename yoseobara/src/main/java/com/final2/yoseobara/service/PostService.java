@@ -2,10 +2,12 @@ package com.final2.yoseobara.service;
 
 
 
+import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
+import com.final2.yoseobara.dto.response.RGResultDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.MemberRepository;
@@ -15,15 +17,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.querydsl.QPageRequest;
-import org.springframework.data.querydsl.QSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -62,6 +61,27 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
                 .build();
+    }
+
+    // Post 범위 내 조회
+    public List<PostResponseDto> getPostListByBounds(MapRequestDto mapRequestDto) {
+        List<Post> posts = postRepository.findAllByBounds(mapRequestDto.getBounds().get("South_West").get("lng"),
+                mapRequestDto.getBounds().get("North_East").get("lng"),
+                mapRequestDto.getBounds().get("South_West").get("lat"),
+                mapRequestDto.getBounds().get("North_East").get("lat"));
+
+        List<PostResponseDto> postList = new ArrayList<>();
+
+        for (Post post : posts) {
+            PostResponseDto postResponseDto = PostResponseDto.builder()
+                    .post(post)
+                    .imageUrls(post.getImageUrls())
+                    .nickname(post.getMember().getNickname())
+                    .build();
+            postList.add(postResponseDto);
+        }
+
+        return postList;
     }
 
     // Post 슬라이스 -> 무한스크롤은 페이지보다 슬라이스가 좋음 (카운트를 하지 않아서)
@@ -109,17 +129,19 @@ public class PostService {
     }
 
     // Post 생성
-    public PostResponseDto createPost(PostRequestDto requestDto, List<String> imageUrls, Long memberId) {
+    public PostResponseDto createPost(PostRequestDto postRequestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다.")); // 에러코드 수정
+
+        String address = getReverseGeocoding(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
 
         // 게시물 생성
         Post post = Post.builder()
                 //.member(memberFoundById)
-                .title(requestDto.getTitle())
-                .content(requestDto.getContent())
-                .address(requestDto.getAddress())
-                .location(requestDto.getLocation())
+                .title(postRequestDto.getTitle())
+                .content(postRequestDto.getContent())
+                .address(address)
+                .location(postRequestDto.getLocation())
                 .imageUrls(imageUrls)
                 .build();
         // 멤버 정보 추가
@@ -134,6 +156,29 @@ public class PostService {
                 .build();
         return postResponseDto;
     }
+
+    // 리버스 지오코딩 외부 api
+    private final String REVERSE_GEOCODING_URL = "https://nominatim.openstreetmap.org/reverse?format=json&";
+    public String getReverseGeocoding(Double lat, Double lng) {
+        String url = REVERSE_GEOCODING_URL + "lat=" + lat + "&lon=" + lng;
+
+        RestTemplate restTemplate = new RestTemplate();
+        RGResultDto result = restTemplate.getForObject(url, RGResultDto.class);
+
+//        if (result.getAddress().getCountry() != "대한민국") {
+//            return "해외";
+//        }
+
+        String[] address = result.getDisplay_name().split(", ");
+        Collections.reverse(Arrays.asList(address));
+        // remove country
+        String[] addressWithoutCountry = Arrays.copyOfRange(address, 2, address.length);
+        String addressForSave = "(" + result.getAddress().getPostcode() + ") " + String.join(" ", addressWithoutCountry);
+
+
+        return addressForSave;
+    }
+
 
     // Post 수정 -> 이미지 수정 어떤 방식으로 할까
     @Transactional
@@ -169,8 +214,10 @@ public class PostService {
             post.setThumbnailUrl(imageUrls.get(0));
         }
 
+        String address = getReverseGeocoding(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
+
         // 나머지 데이터 업데이트
-        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress(),
+        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address,
                 postRequestDto.getLocation());
         // 멤버 정보 추가
         post.mapToMember(memberFoundById);

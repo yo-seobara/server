@@ -23,4 +23,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select p from Post p")
     public Slice<Post> findAllDefault(Pageable pageable);
 
+    // 범위 내 location 조회
+    @Query("select p from Post p where p.lng between :swLng and :neLng and p.lat between :swLat and :neLat")
+    public List<Post> findAllByBounds(@Param("swLng") Double swLng, @Param("neLng") Double neLng, @Param("swLat") Double swLat, @Param("neLat") Double neLat);
+
 }
