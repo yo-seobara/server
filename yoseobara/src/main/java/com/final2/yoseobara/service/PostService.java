@@ -165,11 +165,11 @@ public class PostService {
         RestTemplate restTemplate = new RestTemplate();
         RGResultDto result = restTemplate.getForObject(url, RGResultDto.class);
 
-        if (result == null) {
-            return "주소를 찾을 수 없습니다.";
+        if (result.getAddress() == null) {
+            return "주소 없음";
         }
 
-        if (!Objects.equals(result.getAddress().getCountry(), "대한민국")) {
+        if (!Objects.equals(result.getAddress().getCountry(), "대한민국") || result.getAddress().getCountry() == null) {
             return result.getDisplay_name();
         }
 
