@@ -90,6 +90,7 @@ public class PostService {
                 case "":
                     return postRepository.findAllDefault(page).map(post -> PostResponseDto.builder()
                             .post(post)
+                            .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
                             .build());
             }
@@ -100,6 +101,7 @@ public class PostService {
         Slice<PostResponseDto> postDtoSlice = postSlice.map(
                 post -> PostResponseDto.builder()
                         .post(post)
+                        .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .build()
         );
