@@ -124,7 +124,7 @@ public class S3Service {
         try {
             // S3를 위한 썸네일 이미지 만들기
             BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-            BufferedImage thumbnail = Thumbnails.of(bufferedImage).size(200, 200).asBufferedImage();
+            BufferedImage thumbnail = Thumbnails.of(bufferedImage).size(600, 600).asBufferedImage();
             ByteArrayOutputStream thumbOutput = new ByteArrayOutputStream();
             String imageType = contentType;
             ImageIO.write(thumbnail, Objects.requireNonNull(imageType.substring(imageType.indexOf("/") + 1)), thumbOutput);
