@@ -165,9 +165,9 @@ public class PostService {
         RestTemplate restTemplate = new RestTemplate();
         RGResultDto result = restTemplate.getForObject(url, RGResultDto.class);
 
-//        if (result.getAddress().getCountry() != "대한민국") {
-//            return "해외";
-//        }
+        if (result.getAddress().getCountry() != "대한민국") {
+            return result.getDisplay_name();
+        }
 
         String[] address = result.getDisplay_name().split(", ");
         Collections.reverse(Arrays.asList(address));
