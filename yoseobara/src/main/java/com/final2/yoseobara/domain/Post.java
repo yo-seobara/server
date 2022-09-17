@@ -40,9 +40,13 @@ public class Post extends Timestamped {
     @Column
     private String address; // 주소
 
-    @Column(columnDefinition = "json") // 원하는 것 -> { Lat: 좌표값, lng: 좌표값 }
-    @Type(type = "json") // 괜찮은 건지 모르겠음. 작동되는 것 보고 수정할 듯
-    private HashMap<String,Double> location;
+//    @Column(columnDefinition = "json") // 원하는 것 -> { Lat: 좌표값, lng: 좌표값 }
+//    @Type(type = "json") // 괜찮은 건지 모르겠음. 작동되는 것 보고 수정할 듯
+//    private HashMap<String,Double> location;
+
+    private Double lng;
+    private Double lat;
+
 
 //    @Column(name = "image_urls") // post_image_urls 테이블이 생김
 //    @ElementCollection(targetClass = String.class) // 값 타입 컬렉션 맵, 기본적으로 OneToMany
@@ -69,9 +73,11 @@ public class Post extends Timestamped {
         this.title = title;
         this.content = content;
         this.address = address;
-        this.location = new LinkedHashMap<>();
-        this.location.put("lat",location.get("lat"));
-        this.location.put("lng",location.get("lng"));
+        this.lng = location.get("lng");
+        this.lat = location.get("lat");
+//        this.location = new LinkedHashMap<>();
+//        this.location.put("lat",location.get("lat"));
+//        this.location.put("lng",location.get("lng"));
         // 서브리스트 문제 때문에 임시로 만든 변수
         List<String> temp = new ArrayList<>(imageUrls.subList(1,imageUrls.size()));
         this.imageUrls = temp;
@@ -86,8 +92,10 @@ public class Post extends Timestamped {
         this.title = title;
         this.content = content;
         this.address = address;
-        this.location.replace("lat",location.get("lat"));
-        this.location.replace("lng",location.get("lng"));
+        this.lng = location.get("lng");
+        this.lat = location.get("lat");
+//        this.location.replace("lat",location.get("lat"));
+//        this.location.replace("lng",location.get("lng"));
     }
 
     // 멤버 정보 추가 ?? 굳이 메소드 만드는 이유? 빌더에서 그냥 넣으면 안되나?
