@@ -10,6 +10,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -62,6 +63,10 @@ public class Post extends Timestamped {
     private Long view; // 계산된 조회수
     private Long heart; // 계산된 좋아요
 
+    @OneToMany(mappedBy = "post")
+    @JsonIgnore
+    private List<Comment> commnets;
+
 
     public void setMember(Member member) {
         this.member = member;
@@ -96,6 +101,7 @@ public class Post extends Timestamped {
         this.lat = location.get("lat");
 //        this.location.replace("lat",location.get("lat"));
 //        this.location.replace("lng",location.get("lng"));
+        this.setModifiedAt(LocalDateTime.now());
     }
 
     // 멤버 정보 추가 ?? 굳이 메소드 만드는 이유? 빌더에서 그냥 넣으면 안되나?
