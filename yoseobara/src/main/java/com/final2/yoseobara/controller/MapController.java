@@ -16,14 +16,13 @@ public class MapController {
 
     // 지오코딩
     @GetMapping("/coordinate")
-    public ResponseDto<?> getCoordinate(@RequestParam String address) {
-        return ResponseDto.success(mapService.getCoordinate(address));
+    public ResponseDto<?> getCoordinate(@RequestParam("address") String keword) {
+        return ResponseDto.success(mapService.getCoordinate(keword));
     }
     // 리버스 지오코딩
     @GetMapping("/address")
-    public ResponseDto<?> getAddress(@RequestParam("lng") Double lng,
-                                     @RequestParam("lat") Double lat) {
-
+    public ResponseDto<?> getAddress(@RequestParam("lat") Double lat,
+                                     @RequestParam("lng") Double lng) {
         return ResponseDto.success(mapService.getAddress(lat, lng));
     }
 }

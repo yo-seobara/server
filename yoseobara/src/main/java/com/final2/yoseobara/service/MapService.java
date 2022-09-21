@@ -1,5 +1,7 @@
 package com.final2.yoseobara.service;
 
+import com.final2.yoseobara.dto.request.MapRequestDto;
+import com.final2.yoseobara.dto.response.MapResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -20,8 +22,37 @@ public class MapService {
     String setUrl = "https://" + host + "/v2/local/";
 
     // kakao map api 주소->좌표 변환
-    public Map getCoordinate(String address) {
-        return null;
+    public MapResponseDto getCoordinate(String keword) {
+
+        String Url = setUrl + "search/address.json?query=" + keword;
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + key);
+        HttpEntity httpEntity = new HttpEntity(headers);
+
+        Map response = restTemplate.exchange(Url, HttpMethod.GET, httpEntity, Map.class).getBody();
+
+        if (response.get("documents").toString().equals("[]")) {
+            return MapResponseDto.builder()
+                    .address("해당 주소를 찾을 수 없음")
+                    .lat(0.0)
+                    .lng(0.0)
+                    .build();
+        }
+
+        Map documents = (Map) ((List) response.get("documents")).get(0);
+
+        Map address = documents.get("road_address") == null ? (Map) documents.get("address") : (Map) documents.get("road_address");
+
+        MapResponseDto mapResponseDto = MapResponseDto.builder()
+                .address(address.get("address_name").toString())
+                .lat(Double.parseDouble(documents.get("y").toString()))
+                .lng(Double.parseDouble(documents.get("x").toString()))
+                .build();
+
+        return mapResponseDto;
     }
 
     // kakao map api 좌표->주소 변환 (도로명주소 없으면 일반 주소)
