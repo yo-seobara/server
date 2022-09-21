@@ -41,6 +41,10 @@ public class Member extends Timestamped {
     @JsonIgnore
     private List<Post> posts;
 
+    @OneToMany(mappedBy = "member")
+    @JsonIgnore
+    private List<Comment> comments;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
