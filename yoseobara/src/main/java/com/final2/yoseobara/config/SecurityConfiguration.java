@@ -71,7 +71,7 @@ public class SecurityConfiguration {
                 .requestMatchers(request -> CorsUtils.isPreFlightRequest(request)).permitAll()
                 .antMatchers("/h2-console/**").permitAll()  //h2-console 해제
                 .antMatchers("/api/member/**").permitAll()   //signup, login 해제
-                .antMatchers(HttpMethod.GET, "/api/posts/**").permitAll()   // Get 요청 해제
+                .antMatchers(HttpMethod.GET, "/api/**").permitAll()   // Get 요청 해제
                 .antMatchers("/api/posts/bounds").permitAll()  // 지도 조회 허용
                 .anyRequest().authenticated()
 

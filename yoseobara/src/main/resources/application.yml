@@ -62,3 +62,8 @@ cloud:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+
+# 카카오
+kakao:
+  rest-api:
+    key: ${kakao.rest-api.key}

@@ -7,7 +7,6 @@ import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
-import com.final2.yoseobara.dto.response.RGResultDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.MemberRepository;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -31,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
+    private final MapService mapService;
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
@@ -133,7 +132,8 @@ public class PostService {
         Member memberFoundById = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다.")); // 에러코드 수정
 
-        String address = getReverseGeocoding(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
+        String address = mapService.getAddress(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
+
 
         // 게시물 생성
         Post post = Post.builder()
@@ -155,32 +155,6 @@ public class PostService {
                 .nickname(memberFoundById.getNickname())
                 .build();
         return postResponseDto;
-    }
-
-    // 리버스 지오코딩 외부 api
-    private final String REVERSE_GEOCODING_URL = "https://nominatim.openstreetmap.org/reverse?format=json&";
-    public String getReverseGeocoding(Double lat, Double lng) {
-        String url = REVERSE_GEOCODING_URL + "lat=" + lat + "&lon=" + lng;
-
-        RestTemplate restTemplate = new RestTemplate();
-        RGResultDto result = restTemplate.getForObject(url, RGResultDto.class);
-
-        if (result.getAddress() == null) {
-            return "주소 없음";
-        }
-
-        if (!Objects.equals(result.getAddress().getCountry(), "대한민국") || result.getAddress().getCountry() == null) {
-            return result.getDisplay_name();
-        }
-
-        String[] address = result.getDisplay_name().split(", ");
-        Collections.reverse(Arrays.asList(address));
-        // remove country
-        String[] addressWithoutCountry = Arrays.copyOfRange(address, 2, address.length);
-        String addressForSave = "(" + result.getAddress().getPostcode() + ") " + String.join(" ", addressWithoutCountry);
-
-
-        return addressForSave;
     }
 
 
@@ -218,11 +192,10 @@ public class PostService {
             post.setThumbnailUrl(imageUrls.get(0));
         }
 
-        String address = getReverseGeocoding(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
+        String address = mapService.getAddress(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
 
         // 나머지 데이터 업데이트
-        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address,
-                postRequestDto.getLocation());
+        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address, postRequestDto.getLocation());
         // 멤버 정보 추가
         post.mapToMember(memberFoundById);
         // DB에 저장

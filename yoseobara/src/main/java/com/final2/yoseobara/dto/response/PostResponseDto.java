@@ -12,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @Getter
-
 public class PostResponseDto {
     private Long postId;
     private String title;
