@@ -38,7 +38,7 @@ public class KakaoMemberService {
     private final TokenProvider tokenProvider;
 
 
-    public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+    public TokenDto kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getAccessToken(code);
 
@@ -52,9 +52,10 @@ public class KakaoMemberService {
         Authentication authentication = forceLogin(kakaoMember);
 
         // 5. response Header에 JWT 토큰 추가
-        kakaoUsersAuthorizationInput(authentication, response);
+        return kakaoUsersAuthorizationInput(authentication, response);
     }
 
+    // 1. "인가 코드"로 "액세스 토큰" 요청
     private String getAccessToken(String code) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
@@ -85,6 +86,7 @@ public class KakaoMemberService {
         return jsonNode.get("access_token").asText(); //인라인 변수
     }
 
+    // 2. 토큰으로 카카오 API 호출
     private KakaoUserInfoDto getKakaoUserInfo(String accessToken) throws JsonProcessingException {
         // HTTP Header 생성
         HttpHeaders headers = new HttpHeaders();
@@ -114,6 +116,7 @@ public class KakaoMemberService {
         return new KakaoUserInfoDto(id, nickname, email);
     }
 
+    // 3. 필요시에 회원가입
     private Member createKakaoMemberIfNeeded(KakaoUserInfoDto kakaoMemberInfoDto) {
         // DB 에 중복된 Kakao Id 가 있는지 확인
         Long kakaoId = kakaoMemberInfoDto.getId();
@@ -137,10 +140,12 @@ public class KakaoMemberService {
         return kakaoMember;
     }
 
+    // 4. 강제 로그인 처리
     private Authentication forceLogin(Member kakaoMember) {
         UserDetails userDetails = new UserDetailsImpl(kakaoMember);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         return authentication;
     }
 
@@ -159,7 +164,6 @@ public class KakaoMemberService {
         response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
         response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
     }
-
 }
 
 
