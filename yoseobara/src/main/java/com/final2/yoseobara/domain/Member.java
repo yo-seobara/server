@@ -36,6 +36,9 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(unique = true)
+    private Long kakaoId;
+
     // OneToMany 는 기본적으로 LAZY 로딩, 매번 직접 추가해줘야 하는지?
     @OneToMany(mappedBy = "member")
     @JsonIgnore
@@ -69,6 +72,10 @@ public class Member extends Timestamped {
     // 포스트 리스트 추가
     public void mapToPost(final Post post) {
         posts.add(post);
+    }
+
+    public Member(String email, String encodedPassword, String nickname, Long kakaoId) {
+        super();
     }
 }
 
