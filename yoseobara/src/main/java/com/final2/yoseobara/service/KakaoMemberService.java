@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.KakaoUserInfoDto;
+import com.final2.yoseobara.dto.request.TokenDto;
+import com.final2.yoseobara.jwt.TokenProvider;
 import com.final2.yoseobara.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
@@ -22,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -32,8 +35,10 @@ public class KakaoMemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private final TokenProvider tokenProvider;
 
-    public void kakaoLogin(String code) throws JsonProcessingException {
+
+    public void kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getAccessToken(code);
 
@@ -44,7 +49,10 @@ public class KakaoMemberService {
         Member kakaoMember = createKakaoMemberIfNeeded(kakaoMemberInfoDto);
 
         // 4. 강제 로그인 처리
-        forceLogin(kakaoMember);
+        Authentication authentication = forceLogin(kakaoMember);
+
+        // 5. response Header에 JWT 토큰 추가
+        kakaoUsersAuthorizationInput(authentication, response);
     }
 
     private String getAccessToken(String code) throws JsonProcessingException {
@@ -129,10 +137,27 @@ public class KakaoMemberService {
         return kakaoMember;
     }
 
-    private void forceLogin(Member kakaoMember) {
+    private Authentication forceLogin(Member kakaoMember) {
         UserDetails userDetails = new UserDetailsImpl(kakaoMember);
         Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
+    }
+
+    //  5. response Header에 JWT 토큰 추가
+    private TokenDto kakaoUsersAuthorizationInput(Authentication authentication, HttpServletResponse response) {
+        // response header에 token 추가
+        UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
+        TokenDto tokenDto = tokenProvider.kakaoGenerateTokenDto(userDetailsImpl);
+        tokenToHeaders(tokenDto, response);
+
+        return tokenDto;
+    }
+
+    public void tokenToHeaders(TokenDto tokenDto, HttpServletResponse response) {
+        response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
+        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
+        response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
     }
 
 }

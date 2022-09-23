@@ -7,6 +7,7 @@ import com.final2.yoseobara.dto.request.LoginRequestDto;
 import com.final2.yoseobara.dto.request.MemberRequestDto;
 import com.final2.yoseobara.dto.request.TokenDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
+import com.final2.yoseobara.service.KakaoMemberService;
 import com.final2.yoseobara.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,8 @@ import javax.validation.Valid;
 public class MemberController {
 
     private final MemberService memberService;
+
+    private final KakaoMemberService kakaoMemberService;
 
     @RequestMapping(value = "/api/member/signup", method = RequestMethod.POST)
     public ResponseDto<?> signup(@RequestBody @Valid MemberRequestDto requestDto) {
@@ -37,10 +40,9 @@ public class MemberController {
     }
 
     @GetMapping("/member/kakao/callback")
-    public String kakaoLogin(@RequestParam String code) throws JsonProcessingException {
-        kakaoMemberService.kakaoLogin(code); //인가코드를 받아서 서비스한테 넘겨줌.
-        return "redirect:/"; //리다이렉트
-
+    public String kakaoLogin(@RequestParam String code, HttpServletResponse response) throws JsonProcessingException {
+        kakaoMemberService.kakaoLogin(code, response);
+        return "redirect:/";
     }
 
 
