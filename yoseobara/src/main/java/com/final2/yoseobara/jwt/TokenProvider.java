@@ -1,5 +1,7 @@
 package com.final2.yoseobara.jwt;
 
+import com.final2.yoseobara.dto.request.KakaoTokenDto;
+import com.final2.yoseobara.dto.request.KakaoUserInfoDto;
 import com.final2.yoseobara.dto.request.TokenDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.RefreshToken;
@@ -76,7 +78,7 @@ public class TokenProvider {
                 .build();
     }
 
-    public TokenDto kakaoGenerateTokenDto(UserDetailsImpl member) {
+    public KakaoTokenDto kakaoGenerateTokenDto(UserDetailsImpl member, KakaoUserInfoDto kakaoUserInfoDto) {
         long now = (new Date().getTime());
 
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
@@ -100,7 +102,8 @@ public class TokenProvider {
 
         refreshTokenRepository.save(refreshTokenObject);
 
-        return TokenDto.builder()
+        return KakaoTokenDto.builder()
+                .nickname(kakaoUserInfoDto.getNickname())
                 .grantType(BEARER_PREFIX)
                 .accessToken(accessToken)
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())

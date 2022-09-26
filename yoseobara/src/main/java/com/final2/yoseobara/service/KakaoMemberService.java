@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.UserDetailsImpl;
+import com.final2.yoseobara.dto.request.KakaoTokenDto;
 import com.final2.yoseobara.dto.request.KakaoUserInfoDto;
 import com.final2.yoseobara.dto.request.TokenDto;
 import com.final2.yoseobara.jwt.TokenProvider;
@@ -38,7 +39,7 @@ public class KakaoMemberService {
     private final TokenProvider tokenProvider;
 
 
-    public TokenDto kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
+    public KakaoTokenDto kakaoLogin(String code, HttpServletResponse response) throws JsonProcessingException {
         // 1. "인가 코드"로 "액세스 토큰" 요청
         String accessToken = getAccessToken(code);
 
@@ -52,7 +53,7 @@ public class KakaoMemberService {
         Authentication authentication = forceLogin(kakaoMember);
 
         // 5. response Header에 JWT 토큰 추가
-        return kakaoUsersAuthorizationInput(authentication, response);
+        return kakaoUsersAuthorizationInput(authentication, response, kakaoMemberInfoDto);
     }
 
     // 1. "인가 코드"로 "액세스 토큰" 요청
@@ -125,7 +126,7 @@ public class KakaoMemberService {
         if (kakaoMember == null) {
             // 회원가입
             // username: kakao email
-            String email = kakaoMemberInfoDto.getEmail();
+            String username = kakaoMemberInfoDto.getEmail();
 
             // password: random UUID
             String password = UUID.randomUUID().toString();
@@ -133,8 +134,13 @@ public class KakaoMemberService {
 
             String nickname = kakaoMemberInfoDto.getNickname();
 
+            kakaoMember = Member.builder()
+                    .username(username)
+                    .password(encodedPassword)
+                    .nickname(nickname)
+                    .kakaoId(kakaoId)
+                    .build();
 
-            kakaoMember = new Member(email, encodedPassword, nickname, kakaoId);
             memberRepository.save(kakaoMember);
         }
         return kakaoMember;
@@ -150,19 +156,19 @@ public class KakaoMemberService {
     }
 
     //  5. response Header에 JWT 토큰 추가
-    private TokenDto kakaoUsersAuthorizationInput(Authentication authentication, HttpServletResponse response) {
+    private KakaoTokenDto kakaoUsersAuthorizationInput(Authentication authentication, HttpServletResponse response, KakaoUserInfoDto kakaoUserInfoDto) {
         // response header에 token 추가
         UserDetailsImpl userDetailsImpl = ((UserDetailsImpl) authentication.getPrincipal());
-        TokenDto tokenDto = tokenProvider.kakaoGenerateTokenDto(userDetailsImpl);
-        tokenToHeaders(tokenDto, response);
+        KakaoTokenDto kakaoTokenDto = tokenProvider.kakaoGenerateTokenDto(userDetailsImpl, kakaoUserInfoDto);
+        tokenToHeaders(kakaoTokenDto, response);
 
-        return tokenDto;
+        return kakaoTokenDto;
     }
 
-    public void tokenToHeaders(TokenDto tokenDto, HttpServletResponse response) {
-        response.addHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-        response.addHeader("Refresh-Token", tokenDto.getRefreshToken());
-        response.addHeader("Access-Token-Expire-Time", tokenDto.getAccessTokenExpiresIn().toString());
+    public void tokenToHeaders(KakaoTokenDto kakaoTokenDto, HttpServletResponse response) {
+        response.addHeader("Authorization", "Bearer " + kakaoTokenDto.getAccessToken());
+        response.addHeader("Refresh-Token", kakaoTokenDto.getRefreshToken());
+        response.addHeader("Access-Token-Expire-Time", kakaoTokenDto.getAccessTokenExpiresIn().toString());
     }
 }
 

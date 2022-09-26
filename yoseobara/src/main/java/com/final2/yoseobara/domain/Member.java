@@ -73,10 +73,6 @@ public class Member extends Timestamped {
     public void mapToPost(final Post post) {
         posts.add(post);
     }
-
-    public Member(String email, String encodedPassword, String nickname, Long kakaoId) {
-        super();
-    }
 }
 
 
