@@ -55,6 +55,10 @@ dependencies {
 
     // json in java
     implementation group: 'org.json', name: 'json', version: '20220320'
+
+    // Thymeleaf (뷰 템플릿 엔진)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
 }
 
 tasks.named('test') {
