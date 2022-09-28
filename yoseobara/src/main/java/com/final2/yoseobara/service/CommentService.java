@@ -10,6 +10,7 @@ import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.CommentRepository;
 import com.final2.yoseobara.repository.PostRepository;
+import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -69,7 +70,7 @@ public class CommentService {
         );
 
         // 코멘트 수정 권한 확인
-        if (!comment.getMember().getMemberId().equals(member.getMemberId())) {
+        if (!(comment.getMember().getMemberId().equals(member.getMemberId()) || member.getAuthority().equals(Authority.ROLE_ADMIN))) {
             throw new InvalidValueException(ErrorCode.COMMENT_UNAUTHORIZED);
         }
 
@@ -97,7 +98,7 @@ public class CommentService {
         );
 
         // 코멘트 삭제 권한 확인
-        if (!comment.getMember().getMemberId().equals(member.getMemberId())) {
+        if (!(comment.getMember().getMemberId().equals(member.getMemberId()) || member.getAuthority().equals(Authority.ROLE_ADMIN))) {
             throw new InvalidValueException(ErrorCode.COMMENT_UNAUTHORIZED);
         }
 

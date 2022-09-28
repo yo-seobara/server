@@ -51,6 +51,7 @@ public class MemberController {
                 .id(userDetailsImpl.getMember().getMemberId())
                 .username(userDetailsImpl.getMember().getUsername())
                 .nickname(userDetailsImpl.getMember().getNickname())
+                .authority(userDetailsImpl.getMember().getAuthority())
                 .build());
     }
 }
