@@ -13,7 +13,6 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Getter // get 함수를 일괄적으로 만들어줍니다.
@@ -61,6 +60,7 @@ public class Post extends Timestamped {
     private String thumbnailUrl;
 
     private Long view; // 계산된 조회수
+
     private Long heart; // 계산된 좋아요
 
     @OneToMany(mappedBy = "post")

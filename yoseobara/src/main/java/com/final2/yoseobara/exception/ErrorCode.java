@@ -43,7 +43,14 @@ public enum ErrorCode {
     INVALID_FILE_NAME(400, "INVALID_FILE_NAME", "파일명에 포함될 수 없는 문자가 포함되어 있습니다."),
     UPLOAD_FAILED(400, "UPLOAD_FAILED", "S3 Bucket 객체 업로드 실패."),
     DELETE_FAILED(400, "DELETE_FAILED", "S3 Bucket 객체 삭제 실패."),
-    INVALID_IMAGE_FILE_EXTENSION(400, "INVALID_IMAGE_FILE_EXTENSION", "bmp,jpg,jpeg,png 형식의 이미지 파일이 요구됨.");
+    INVALID_IMAGE_FILE_EXTENSION(400, "INVALID_IMAGE_FILE_EXTENSION", "bmp,jpg,jpeg,png 형식의 이미지 파일이 요구됨."),
+
+    //좋아요
+    ALREADY_HEARTED(409,"ALREADY_HEARTED","이미 좋아요 된 페이지 입니다,"),
+    HEART_NOT_FOUND(400,"HEART_NOT_FOUND","해당 좋아요 정보를 찾을 수 없습니다."),
+    MEMBER_NOT_FOUND(400,"MEMBER_NOT_FOUND","윺저가 존재하지 않습니다."),
+    MISMATCH_JWT_USER(400,"MISMATCH_JWT_USER","일치하지 않은 토큰입니다."),
+    UNAUTHORIZED(400,"UNAUTHORIZED","유요한 인증 자격 증면이 없습니다.");
 
     private final int status;
     private final String code;

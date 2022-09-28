@@ -41,6 +41,7 @@ public class PostService {
                     .post(post)
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
+                    .heart(post.getHeart())
                     .build();
             postList.add(postResponseDto);
         }
@@ -56,7 +57,7 @@ public class PostService {
         return PostResponseDto.builder()
                 .post(post)
                 //.view(post.getView())
-                //.heart(post.getHeart())
+                .heart(post.getHeart())
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
                 .build();
@@ -76,6 +77,7 @@ public class PostService {
                     .post(post)
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
+                    .heart(post.getHeart())
                     .build();
             postList.add(postResponseDto);
         }
@@ -111,6 +113,7 @@ public class PostService {
                             .post(post)
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
+                            .heart(post.getHeart())
                             .build());
             }
         }
@@ -122,6 +125,7 @@ public class PostService {
                         .post(post)
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
+                        .heart(post.getHeart())
                         .build()
         );
         return postDtoSlice;
@@ -153,6 +157,7 @@ public class PostService {
                 .post(post)
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
+                .heart(post.getHeart())
                 .build();
         return postResponseDto;
     }
@@ -205,6 +210,7 @@ public class PostService {
                 .post(post)
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
+                .heart(post.getHeart())
                 .build();
     }
 
