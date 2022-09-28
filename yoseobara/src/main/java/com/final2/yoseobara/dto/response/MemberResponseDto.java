@@ -1,5 +1,6 @@
 package com.final2.yoseobara.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.final2.yoseobara.dto.request.TokenDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,10 @@ public class MemberResponseDto {
     private Long id;
     private String username;
     private String nickname;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private TokenDto token;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime createdAt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private LocalDateTime modifiedAt;
 }
