@@ -9,6 +9,7 @@ import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
+import com.final2.yoseobara.repository.CommentRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final CommentRepository commentRepository;
     private final S3Service s3Service;
     private final MapService mapService;
 
@@ -223,6 +225,9 @@ public class PostService {
         if (!Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId())) {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
+
+        // 게시물에 달린 댓글 삭제
+        commentRepository.deleteAllByPost(postFoundById);
 
         // 게시물 이미지 삭제
         for (String imageUrl : postFoundById.getImageUrls()) {
