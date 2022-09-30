@@ -9,6 +9,7 @@ import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
+import com.final2.yoseobara.repository.HeartRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -152,7 +153,7 @@ public class PostService {
         post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
-        
+
         PostResponseDto postResponseDto = PostResponseDto.builder()
                 .post(post)
                 .imageUrls(post.getImageUrls())

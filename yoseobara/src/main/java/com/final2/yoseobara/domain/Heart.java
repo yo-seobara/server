@@ -21,7 +21,6 @@ public class Heart {
     @NonNull
     private Long postId;
 
-
     @ManyToOne
     @JoinColumn
     private Member member;
