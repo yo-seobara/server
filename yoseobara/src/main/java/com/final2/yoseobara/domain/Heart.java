@@ -15,7 +15,7 @@ public class Heart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long Id;
+    private Long heartId;
 
     @Column
     @NonNull
