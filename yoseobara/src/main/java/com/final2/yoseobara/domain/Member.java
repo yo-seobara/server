@@ -36,6 +36,9 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(unique = true)
+    private Long kakaoId;
+
     // OneToMany 는 기본적으로 LAZY 로딩, 매번 직접 추가해줘야 하는지?
     @OneToMany(mappedBy = "member")
     @JsonIgnore
