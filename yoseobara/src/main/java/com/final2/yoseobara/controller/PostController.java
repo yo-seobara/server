@@ -36,31 +36,6 @@ public class PostController {
     private final S3Service s3Service;
 
 
-    // 게시글 작성
-    @PostMapping
-    public ResponseDto<?> createPost(@RequestPart PostRequestDto postRequestDto,
-                                     @RequestPart(required = false) MultipartFile[] images,
-                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
-        // 로그인 확인
-        if(userDetailsImpl.getMember() == null){
-            return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
-        }
-
-        // 로그인된 유저의 아이디
-        Long memberId = userDetailsImpl.getMember().getMemberId();
-
-        // 이미지 파일 1개 이상 3개 이하
-        if(images == null){
-            return ResponseDto.fail(ErrorCode.POST_IMAGE_REQUIRED);
-        } else if (images.length > 3){
-            return ResponseDto.fail(ErrorCode.POST_IMAGE_MAX);
-        }
-
-        // 이미지 S3 업로드
-        List<String> imageUrls = s3Service.uploadFile(images);
-
-        return ResponseDto.success(postService.createPost(postRequestDto, imageUrls, memberId));
-    }
 
     // 게시글 전체 조회
     @GetMapping("/all")
@@ -94,6 +69,43 @@ public class PostController {
         //Slice<Post> postSlice = postRepository.findAll(pageable);
         return ResponseDto.success(postService.getPostSlice(search, keyword, pageable));
     }
+
+
+    // 유저페이지 리스팅 (무한스크롤 슬라이스)
+    @GetMapping("/nickname/{nickname}")
+    public ResponseDto<?> getPostSliceByNickname(@PathVariable String nickname,
+                                                 @RequestParam(value = "search", defaultValue = "") String search,
+                                                 @RequestParam(value = "keyword", defaultValue = "") String keyword,
+                                                 @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseDto.success(postService.getPostSliceByNickname(nickname, search, keyword, pageable));
+    }
+
+    // 게시글 작성
+    @PostMapping
+    public ResponseDto<?> createPost(@RequestPart PostRequestDto postRequestDto,
+                                     @RequestPart(required = false) MultipartFile[] images,
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
+        // 로그인 확인
+        if(userDetailsImpl.getMember() == null){
+            return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
+        }
+
+        // 로그인된 유저의 아이디
+        Long memberId = userDetailsImpl.getMember().getMemberId();
+
+        // 이미지 파일 1개 이상 3개 이하
+        if(images == null){
+            return ResponseDto.fail(ErrorCode.POST_IMAGE_REQUIRED);
+        } else if (images.length > 3){
+            return ResponseDto.fail(ErrorCode.POST_IMAGE_MAX);
+        }
+
+        // 이미지 S3 업로드
+        List<String> imageUrls = s3Service.uploadFile(images);
+
+        return ResponseDto.success(postService.createPost(postRequestDto, imageUrls, memberId));
+    }
+
 
     // 게시물 수정
     @PutMapping("/{postId}")

@@ -130,6 +130,40 @@ public class PostService {
         return postDtoSlice;
     }
 
+
+    // 닉네임으로 Post 리스트 조회 (유저페이지)
+    public Slice<PostResponseDto> getPostSliceByNickname(String nickname, String search, String keyword, Pageable pageable) {
+
+        // nickname으로 멤버 존재하는지 확인
+        if (memberRepository.findByNickname(nickname).isEmpty()) {
+            throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 정렬의 디폴트는 최신순
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // jpa문을 and로 바꿔봄
+        String title = "";
+        String content = "";
+        if (Objects.nonNull(search)) {
+            switch (search) {
+                case "title" -> title = keyword;
+                case "content" -> content = keyword;
+            }
+        }
+
+        Slice<Post> postSlice = postRepository.findAllByMember_NicknameAndTitleContainingAndContentContaining(nickname, title, content, page);
+        Slice<PostResponseDto> postDtoSlice = postSlice.map(
+                post -> PostResponseDto.builder()
+                        .post(post)
+                        .imageUrls(post.getImageUrls())
+                        .nickname(post.getMember().getNickname())
+                        .build()
+        );
+        return postDtoSlice;
+    }
+
     // Post 생성
     public PostResponseDto createPost(PostRequestDto postRequestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
