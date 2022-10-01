@@ -1,15 +1,16 @@
 package com.final2.yoseobara.service;
 
+import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.dto.request.LoginRequestDto;
+import com.final2.yoseobara.dto.request.MemberRequestDto;
 import com.final2.yoseobara.dto.request.NicknameRequestDto;
 import com.final2.yoseobara.dto.request.TokenDto;
-import com.final2.yoseobara.dto.request.MemberRequestDto;
-import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.dto.response.MemberResponseDto;
-import com.final2.yoseobara.domain.Member;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.jwt.TokenProvider;
 import com.final2.yoseobara.repository.MemberRepository;
+import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class MemberService {
                 .username(requestDto.getUsername())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .nickname(requestDto.getNickname())
+                .authority(Authority.ROLE_MEMBER)
                 .build();
         memberRepository.save(member);
         return ResponseDto.success(
@@ -98,11 +100,6 @@ public class MemberService {
                         .build()
         );
     }
-
-
-
-
-
 
     @Transactional(readOnly = true)
     public Member isPresentMember(String username) {

@@ -1,6 +1,7 @@
 package com.final2.yoseobara.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.final2.yoseobara.shared.Authority;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,7 +10,6 @@ import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,6 +36,9 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(unique = true)
+    private Long kakaoId;
+
     // OneToMany 는 기본적으로 LAZY 로딩, 매번 직접 추가해줘야 하는지?
     @OneToMany(mappedBy = "member")
     @JsonIgnore
@@ -51,6 +54,10 @@ public class Member extends Timestamped {
             orphanRemoval = true,
             fetch = FetchType.LAZY)
     private List<Heart> heart;
+
+    @Enumerated(EnumType.STRING)
+    @JsonIgnore
+    private Authority authority;
 
     @Override
     public boolean equals(Object o) {

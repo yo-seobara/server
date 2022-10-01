@@ -9,13 +9,12 @@ import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
+import com.final2.yoseobara.repository.CommentRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
+import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +27,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final CommentRepository commentRepository;
     private final S3Service s3Service;
     private final MapService mapService;
 
@@ -131,6 +131,41 @@ public class PostService {
         return postDtoSlice;
     }
 
+
+    // 닉네임으로 Post 리스트 조회 (유저페이지)
+    public Page<PostResponseDto> getPostPageByNickname(String nickname, String search, String keyword, Pageable pageable) {
+
+        // nickname으로 멤버 존재하는지 확인
+        if (memberRepository.findByNickname(nickname).isEmpty()) {
+            throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 정렬의 디폴트는 최신순
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // jpa문을 and로 바꿔봄
+        String title = "";
+        String content = "";
+        if (Objects.nonNull(search)) {
+            switch (search) {
+                case "title" -> title = keyword;
+                case "content" -> content = keyword;
+            }
+        }
+
+        Page<Post> postSlice = postRepository.findAllByMember_NicknameAndTitleContainingAndContentContaining(nickname, title, content, page);
+        Page<PostResponseDto> postDtoSlice = postSlice.map(
+                post -> PostResponseDto.builder()
+                        .post(post)
+                        .imageUrls(post.getImageUrls())
+                        .nickname(post.getMember().getNickname())
+                        .build()
+        );
+        return postDtoSlice;
+    }
+
+
     // Post 생성
     public PostResponseDto createPost(PostRequestDto postRequestDto, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
@@ -175,8 +210,8 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
 
-        // 로그인된 유저와 게시글 작성자가 같은지 확인
-        if (!Objects.equals(memberFoundById.getMemberId(), post.getMember().getMemberId())) {
+        // 로그인된 유저와 게시글 작성자가 같지 않거나 관리자가 아니면 수정 불가
+        if (!(Objects.equals(memberFoundById.getMemberId(), post.getMember().getMemberId()) || memberFoundById.getAuthority() == Authority.ROLE_ADMIN)) {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
 
@@ -202,7 +237,7 @@ public class PostService {
         // 나머지 데이터 업데이트
         post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address, postRequestDto.getLocation());
         // 멤버 정보 추가
-        post.mapToMember(memberFoundById);
+        //post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
 
@@ -225,10 +260,13 @@ public class PostService {
         Post postFoundById = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
 
-        // 로그인된 유저와 게시글 작성자가 같은지 확인
-        if (!Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId())) {
+        // 로그인된 유저와 게시글 작성자가 같지 않거나 관리자가 아니면 삭제 불가
+        if (!(Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId()) || memberFoundById.getAuthority() == Authority.ROLE_ADMIN)) {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
+
+        // 게시물에 달린 댓글 삭제
+        commentRepository.deleteAllByPost(postFoundById);
 
         // 게시물 이미지 삭제
         for (String imageUrl : postFoundById.getImageUrls()) {
