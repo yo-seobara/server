@@ -1,21 +1,17 @@
 package com.final2.yoseobara.controller;
 
-import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.exception.ErrorCode;
-import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.service.PostService;
 import com.final2.yoseobara.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -32,7 +27,6 @@ import java.util.Objects;
 
 public class PostController {
 
-    private final PostRepository postRepository;
     private final PostService postService;
     private final S3Service s3Service;
 
@@ -69,29 +63,6 @@ public class PostController {
                                        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         //Slice<Post> postSlice = postRepository.findAll(pageable);
         return ResponseDto.success(postService.getPostSlice(search, keyword, pageable));
-    }
-
-
-    // 유저페이지 리스팅 (페이지)
-    // 정렬, 검색 가능
-    @GetMapping("/nickname/{nickname}")
-    public ResponseDto<?> getPostPageByNickname(@PathVariable String nickname,
-                                                 @RequestParam(value = "search", defaultValue = "") String search,
-                                                 @RequestParam(value = "keyword", defaultValue = "") String keyword,
-                                                 @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
-        return ResponseDto.success(postService.getPostPageByNickname(nickname, search, keyword, pageable));
-    }
-
-
-    // 내가 쓴 글 리스팅 (페이지)
-    // 정렬, 검색 가능
-    @GetMapping("/my")
-    public ResponseDto<?> getMyPostPage(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                         @RequestParam(value = "search", defaultValue = "") String search,
-                                         @RequestParam(value = "keyword", defaultValue = "") String keyword,
-                                         @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
-        String myNickname = userDetails.getMember().getNickname();
-        return ResponseDto.success(postService.getPostPageByNickname(myNickname, search, keyword, pageable));
     }
 
 
