@@ -1,9 +1,6 @@
 package com.final2.yoseobara.controller;
 
 import com.final2.yoseobara.domain.UserDetailsImpl;
-import com.final2.yoseobara.dto.request.NicknameRequestDto;
-import com.final2.yoseobara.dto.request.LoginRequestDto;
-import com.final2.yoseobara.dto.request.MemberRequestDto;
 import com.final2.yoseobara.dto.response.MemberResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
@@ -16,6 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.final2.yoseobara.dto.request.*;
+import com.final2.yoseobara.service.KakaoMemberService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -29,7 +29,9 @@ public class MemberController {
     private final MemberService memberService;
     private final CommentService commentService;
     private final PostService postService;
+    private final KakaoMemberService kakaoMemberService;
 
+    
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public ResponseDto<?> signup(@RequestBody @Valid MemberRequestDto requestDto) {
         return memberService.createUser(requestDto);
@@ -44,8 +46,7 @@ public class MemberController {
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseDto<?> login(@RequestBody @Valid LoginRequestDto requestDto,
-                                HttpServletResponse response
-    ) {
+                                HttpServletResponse response) {
         return memberService.login(requestDto, response);
     }
 
@@ -65,7 +66,6 @@ public class MemberController {
                 .build());
     }
 
-
     // 유저페이지 리스팅 (페이지)
     // 정렬, 검색 가능
     @GetMapping("/posts/{nickname}")
@@ -75,7 +75,6 @@ public class MemberController {
                                                 @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseDto.success(postService.getPostPageByNickname(nickname, search, keyword, pageable));
     }
-
 
     // 내가 쓴 글 리스팅 (페이지)
     // 정렬, 검색 가능
@@ -103,4 +102,9 @@ public class MemberController {
         return ResponseDto.success(commentService.getMyComment(userDetails.getMember().getMemberId(), pageable));
     }
 
+    // 카카오 로그인 요청
+    @GetMapping("/member/kakao/callback")
+    public KakaoTokenDto kakaoLogin(@RequestParam String code, HttpServletResponse response) throws JsonProcessingException {
+        return kakaoMemberService.kakaoLogin(code, response);
+    }
 }

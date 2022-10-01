@@ -1,12 +1,12 @@
 package com.final2.yoseobara.service;
 
+import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.dto.request.LoginRequestDto;
+import com.final2.yoseobara.dto.request.MemberRequestDto;
 import com.final2.yoseobara.dto.request.NicknameRequestDto;
 import com.final2.yoseobara.dto.request.TokenDto;
-import com.final2.yoseobara.dto.request.MemberRequestDto;
-import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.dto.response.MemberResponseDto;
-import com.final2.yoseobara.domain.Member;
+import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.jwt.TokenProvider;
 import com.final2.yoseobara.repository.MemberRepository;
@@ -100,11 +100,6 @@ public class MemberService {
                         .build()
         );
     }
-
-
-
-
-
 
     @Transactional(readOnly = true)
     public Member isPresentMember(String username) {

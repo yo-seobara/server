@@ -1,5 +1,7 @@
 package com.final2.yoseobara.jwt;
 
+import com.final2.yoseobara.dto.request.KakaoTokenDto;
+import com.final2.yoseobara.dto.request.KakaoUserInfoDto;
 import com.final2.yoseobara.dto.request.TokenDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.RefreshToken;
@@ -74,8 +76,41 @@ public class TokenProvider {
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
                 .refreshToken(refreshToken)
                 .build();
-
     }
+
+    public KakaoTokenDto kakaoGenerateTokenDto(UserDetailsImpl member, KakaoUserInfoDto kakaoUserInfoDto) {
+        long now = (new Date().getTime());
+
+        Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
+        String accessToken = Jwts.builder()
+                .setSubject(member.getUsername())
+                .claim(AUTHORITIES_KEY, Authority.ROLE_MEMBER.toString())
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        String refreshToken = Jwts.builder()
+                .setExpiration(new Date(now + REFRESH_TOKEN_EXPRIRE_TIME))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        RefreshToken refreshTokenObject = RefreshToken.builder()
+                .id(member.getId())
+                .member(member.getMember())
+                .refreshTokenValue(refreshToken)
+                .build();
+
+        refreshTokenRepository.save(refreshTokenObject);
+
+        return KakaoTokenDto.builder()
+                .nickname(kakaoUserInfoDto.getNickname())
+                .grantType(BEARER_PREFIX)
+                .accessToken(accessToken)
+                .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
+                .refreshToken(refreshToken)
+                .build();
+    }
+
     public Member getUserFromAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || AnonymousAuthenticationToken.class.
