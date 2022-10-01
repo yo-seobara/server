@@ -10,7 +10,6 @@ import org.hibernate.Hibernate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,6 +47,13 @@ public class Member extends Timestamped {
     @OneToMany(mappedBy = "member")
     @JsonIgnore
     private List<Comment> comments;
+
+    @OneToMany(
+            mappedBy = "member",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    private List<Heart> heart;
 
     @Enumerated(EnumType.STRING)
     @JsonIgnore

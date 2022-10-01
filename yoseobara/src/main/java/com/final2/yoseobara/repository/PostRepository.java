@@ -1,6 +1,7 @@
 package com.final2.yoseobara.repository;
 
 
+import com.final2.yoseobara.domain.Heart;
 import com.final2.yoseobara.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,4 +30,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("select p from Post p where p.lng between :swLng and :neLng and p.lat between :swLat and :neLat")
     public List<Post> findAllByBounds(@Param("swLng") Double swLng, @Param("neLng") Double neLng, @Param("swLat") Double swLat, @Param("neLat") Double neLat);
 
+    Post findByPostId(Long postId);
 }

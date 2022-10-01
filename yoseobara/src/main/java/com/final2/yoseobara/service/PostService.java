@@ -2,7 +2,6 @@ package com.final2.yoseobara.service;
 
 
 
-import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
@@ -42,6 +41,7 @@ public class PostService {
                     .post(post)
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
+                    .heart(post.getHeart())
                     .build();
             postList.add(postResponseDto);
         }
@@ -57,7 +57,7 @@ public class PostService {
         return PostResponseDto.builder()
                 .post(post)
                 //.view(post.getView())
-                //.heart(post.getHeart())
+                .heart(post.getHeart())
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
                 .build();
@@ -77,6 +77,7 @@ public class PostService {
                     .post(post)
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
+                    .heart(post.getHeart())
                     .build();
             postList.add(postResponseDto);
         }
@@ -112,6 +113,7 @@ public class PostService {
                             .post(post)
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
+                            .heart(post.getHeart())
                             .build());
             }
         }
@@ -123,6 +125,7 @@ public class PostService {
                         .post(post)
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
+                        .heart(post.getHeart())
                         .build()
         );
         return postDtoSlice;
@@ -189,6 +192,7 @@ public class PostService {
                 .post(post)
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
+                .heart(post.getHeart())
                 .build();
         return postResponseDto;
     }
@@ -240,7 +244,8 @@ public class PostService {
         return PostResponseDto.builder()
                 .post(post)
                 .imageUrls(post.getImageUrls())
-                .nickname(post.getMember().getNickname())
+                .nickname(memberFoundById.getNickname())
+                .heart(post.getHeart())
                 .build();
     }
 
