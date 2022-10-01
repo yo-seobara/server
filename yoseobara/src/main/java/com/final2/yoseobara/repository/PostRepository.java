@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -29,4 +30,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     public List<Post> findAllByBounds(@Param("swLng") Double swLng, @Param("neLng") Double neLng, @Param("swLat") Double swLat, @Param("neLat") Double neLat);
 
     Post findByPostId(Long postId);
+
+    @Modifying
+    @Query("update Post p set p.view = p.view + 1 where p.postId = :postId")
+    int updateView(Long PostId);
 }

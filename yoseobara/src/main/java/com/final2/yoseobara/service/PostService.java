@@ -2,6 +2,7 @@ package com.final2.yoseobara.service;
 
 
 
+import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
@@ -13,14 +14,19 @@ import com.final2.yoseobara.repository.HeartRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.weaver.Lint;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -50,14 +56,18 @@ public class PostService {
         return postList;
     }
 
+
     // Post 상세 조회
     public PostResponseDto getPost(Long postid) {
         Post post = postRepository.findById(postid).orElseThrow(
                 () -> new IllegalArgumentException("Couldn't find the post")
         );
+
+        updateView(postid);
+
         return PostResponseDto.builder()
                 .post(post)
-                //.view(post.getView())
+                .view(post.getView())
                 .heart(post.getHeart())
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
@@ -241,5 +251,42 @@ public class PostService {
 
         // 게시물 데이터 삭제
         postRepository.delete(postFoundById);
+    }
+    @Transactional
+    private  void updatView (Long postId, UserDetailsImpl userDetails, HttpServletRequest request, HttpServletResponse response) {
+
+        // 조회 수 중복 방지
+        Cookie oldCookie = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("postView")) {
+                    oldCookie = cookie;
+                }
+            }
+        }
+        if (oldCookie != null) {
+            if (!oldCookie.getValue().contains("[" + postId.toString() + "]")) {
+                updateView(postId);
+                oldCookie.setValue(oldCookie.getValue() + "_[" + postId + "]");
+                oldCookie.setPath("/");
+                oldCookie.setMaxAge(60 * 60 * 24);
+                response.addCookie(oldCookie);
+            }
+        } else {
+            updateView(postId);
+            Cookie newCookie = new Cookie("postView", "[" + postId + "]");
+            newCookie.setPath("/");
+            newCookie.setMaxAge(60 * 60 * 24);
+            response.addCookie(newCookie);
+            System.out.println(newCookie);
+        }
+
+    }
+
+    // 조회수 증가 로직
+    @Transactional
+    public int updateView(Long PostId) {
+        return postRepository.updateView(PostId);
     }
 }
