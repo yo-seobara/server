@@ -2,6 +2,7 @@ package com.final2.yoseobara.service;
 
 
 
+import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
@@ -14,10 +15,7 @@ import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -132,7 +130,7 @@ public class PostService {
 
 
     // 닉네임으로 Post 리스트 조회 (유저페이지)
-    public Slice<PostResponseDto> getPostSliceByNickname(String nickname, String search, String keyword, Pageable pageable) {
+    public Page<PostResponseDto> getPostPageByNickname(String nickname, String search, String keyword, Pageable pageable) {
 
         // nickname으로 멤버 존재하는지 확인
         if (memberRepository.findByNickname(nickname).isEmpty()) {
@@ -153,8 +151,8 @@ public class PostService {
             }
         }
 
-        Slice<Post> postSlice = postRepository.findAllByMember_NicknameAndTitleContainingAndContentContaining(nickname, title, content, page);
-        Slice<PostResponseDto> postDtoSlice = postSlice.map(
+        Page<Post> postSlice = postRepository.findAllByMember_NicknameAndTitleContainingAndContentContaining(nickname, title, content, page);
+        Page<PostResponseDto> postDtoSlice = postSlice.map(
                 post -> PostResponseDto.builder()
                         .post(post)
                         .imageUrls(post.getImageUrls())
@@ -163,6 +161,7 @@ public class PostService {
         );
         return postDtoSlice;
     }
+
 
     // Post 생성
     public PostResponseDto createPost(PostRequestDto postRequestDto, List<String> imageUrls, Long memberId) {

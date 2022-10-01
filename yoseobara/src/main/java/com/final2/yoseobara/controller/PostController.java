@@ -13,6 +13,7 @@ import com.final2.yoseobara.service.PostService;
 import com.final2.yoseobara.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -71,14 +72,28 @@ public class PostController {
     }
 
 
-    // 유저페이지 리스팅 (무한스크롤 슬라이스)
+    // 유저페이지 리스팅 (페이지)
+    // 정렬, 검색 가능
     @GetMapping("/nickname/{nickname}")
-    public ResponseDto<?> getPostSliceByNickname(@PathVariable String nickname,
+    public ResponseDto<?> getPostPageByNickname(@PathVariable String nickname,
                                                  @RequestParam(value = "search", defaultValue = "") String search,
                                                  @RequestParam(value = "keyword", defaultValue = "") String keyword,
                                                  @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
-        return ResponseDto.success(postService.getPostSliceByNickname(nickname, search, keyword, pageable));
+        return ResponseDto.success(postService.getPostPageByNickname(nickname, search, keyword, pageable));
     }
+
+
+    // 내가 쓴 글 리스팅 (페이지)
+    // 정렬, 검색 가능
+    @GetMapping("/my")
+    public ResponseDto<?> getMyPostPage(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                         @RequestParam(value = "search", defaultValue = "") String search,
+                                         @RequestParam(value = "keyword", defaultValue = "") String keyword,
+                                         @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        String myNickname = userDetails.getMember().getNickname();
+        return ResponseDto.success(postService.getPostPageByNickname(myNickname, search, keyword, pageable));
+    }
+
 
     // 게시글 작성
     @PostMapping
