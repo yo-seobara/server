@@ -59,8 +59,8 @@ public class Post extends Timestamped {
     @Column
     private String thumbnailUrl;
 
-    @Column(columnDefinition = "integer default 0", nullable = false)
-    private Long view;
+    private Long view; // 계산된 조회수
+
     private Long heart; // 계산된 좋아요
 
     @OneToMany(mappedBy = "post")

@@ -30,7 +30,7 @@ public class PostResponseDto {
     private String nickname; // 로그인된 작성자의 닉네임 받아오기
 
     @Builder // 이미지와 썸네일 추가하기
-    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart,Long view) {
+    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart) {
         this.postId = post.getPostId();
         this.title = post.getTitle();
         this.content = post.getContent();
@@ -42,7 +42,7 @@ public class PostResponseDto {
         this.modifiedAt = post.getModifiedAt();
         this.imageUrls = imageUrls;
         this.thumbnailUrl = post.getThumbnailUrl();
-        this.view = view;
+        this.view = post.getView();
         this.heart =heart;
         this.nickname = nickname;
     }

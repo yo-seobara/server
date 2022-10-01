@@ -15,11 +15,12 @@ public class Heart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long heartId;
+    private Long Id;
 
     @Column
     @NonNull
     private Long postId;
+
 
     @ManyToOne
     @JoinColumn
