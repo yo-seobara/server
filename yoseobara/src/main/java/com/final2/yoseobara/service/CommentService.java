@@ -12,9 +12,12 @@ import com.final2.yoseobara.repository.CommentRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,13 +27,28 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
 
-    // 코멘트 조회
+    // 게시글 코멘트 조회
     public List<CommentResponseDto> getComment(Long postId) {
         List<Comment> comments = commentRepository.findAllByPostPostId(postId);
 
         return comments.stream()
                 .map(CommentResponseDto::new)
                 .collect(Collectors.toList());
+    }
+
+    // 내가 쓴 코멘트 조회 (페이지)
+    public Page getMyComment(Long memberId, Pageable pageable) {
+
+        // 정렬의 디폴트는 최신순
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Page<Comment> commentPage = commentRepository.findAllByMember_MemberId(memberId, page);
+        Page<CommentResponseDto> commentPageDto = commentPage.map(
+                comment -> CommentResponseDto.builder()
+                .comment(comment)
+                .build());
+        return commentPageDto;
     }
 
     // 코멘트 작성

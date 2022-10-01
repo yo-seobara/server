@@ -1,6 +1,5 @@
 package com.final2.yoseobara.service;
 
-import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.response.MapResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

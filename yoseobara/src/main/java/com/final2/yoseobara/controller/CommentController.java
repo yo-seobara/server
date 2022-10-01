@@ -3,7 +3,6 @@ package com.final2.yoseobara.controller;
 
 import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.CommentRequestDto;
-import com.final2.yoseobara.dto.response.CommentResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.service.CommentService;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
-
-    // 코멘트 조회
+    // 게시글 코멘트 조회
     @GetMapping
     public ResponseDto<?> getComment(@PathVariable Long postId) {
         return ResponseDto.success(commentService.getComment(postId));
