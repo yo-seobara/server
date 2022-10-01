@@ -1,6 +1,7 @@
 package com.final2.yoseobara.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.final2.yoseobara.shared.Authority;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,6 +48,10 @@ public class Member extends Timestamped {
     @OneToMany(mappedBy = "member")
     @JsonIgnore
     private List<Comment> comments;
+
+    @Enumerated(EnumType.STRING)
+    @JsonIgnore
+    private Authority authority;
 
     @Override
     public boolean equals(Object o) {

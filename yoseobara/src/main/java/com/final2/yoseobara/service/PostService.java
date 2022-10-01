@@ -9,8 +9,10 @@ import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
+import com.final2.yoseobara.repository.CommentRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
+import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final MemberRepository memberRepository;
+    private final CommentRepository commentRepository;
     private final S3Service s3Service;
     private final MapService mapService;
 
@@ -170,8 +173,8 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
 
-        // 로그인된 유저와 게시글 작성자가 같은지 확인
-        if (!Objects.equals(memberFoundById.getMemberId(), post.getMember().getMemberId())) {
+        // 로그인된 유저와 게시글 작성자가 같지 않거나 관리자가 아니면 수정 불가
+        if (!(Objects.equals(memberFoundById.getMemberId(), post.getMember().getMemberId()) || memberFoundById.getAuthority() == Authority.ROLE_ADMIN)) {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
 
@@ -197,14 +200,14 @@ public class PostService {
         // 나머지 데이터 업데이트
         post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address, postRequestDto.getLocation());
         // 멤버 정보 추가
-        post.mapToMember(memberFoundById);
+        //post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
 
         return PostResponseDto.builder()
                 .post(post)
                 .imageUrls(post.getImageUrls())
-                .nickname(memberFoundById.getNickname())
+                .nickname(post.getMember().getNickname())
                 .build();
     }
 
@@ -219,10 +222,13 @@ public class PostService {
         Post postFoundById = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
 
-        // 로그인된 유저와 게시글 작성자가 같은지 확인
-        if (!Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId())) {
+        // 로그인된 유저와 게시글 작성자가 같지 않거나 관리자가 아니면 삭제 불가
+        if (!(Objects.equals(memberFoundById.getMemberId(), postFoundById.getMember().getMemberId()) || memberFoundById.getAuthority() == Authority.ROLE_ADMIN)) {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
+
+        // 게시물에 달린 댓글 삭제
+        commentRepository.deleteAllByPost(postFoundById);
 
         // 게시물 이미지 삭제
         for (String imageUrl : postFoundById.getImageUrls()) {

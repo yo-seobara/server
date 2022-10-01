@@ -10,6 +10,7 @@ import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.jwt.TokenProvider;
 import com.final2.yoseobara.repository.MemberRepository;
+import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class MemberService {
                 .username(requestDto.getUsername())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
                 .nickname(requestDto.getNickname())
+                .authority(Authority.ROLE_MEMBER)
                 .build();
         memberRepository.save(member);
         return ResponseDto.success(
