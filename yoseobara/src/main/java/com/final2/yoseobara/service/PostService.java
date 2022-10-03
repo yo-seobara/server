@@ -286,4 +286,10 @@ public class PostService {
         // 게시물 데이터 삭제
         postRepository.delete(postFoundById);
     }
+    @Transactional
+    public Post selectBoardDetail(Long id){
+        Post post = postRepository.findById(id).get();
+        post.updateView(post.getView());
+        return post;
+    }
 }

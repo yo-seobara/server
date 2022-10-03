@@ -109,6 +109,10 @@ public class Post extends Timestamped {
         this.member = member;
         member.mapToPost(this);
     }
+    public Post updateView(Long view){
+        this.view = view+1;
+        return this;
+    }
 }
 
 
