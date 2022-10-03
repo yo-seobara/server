@@ -2,6 +2,7 @@ package com.final2.yoseobara.service;
 
 
 
+import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
@@ -10,11 +11,13 @@ import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.CommentRepository;
+import com.final2.yoseobara.repository.HeartRepository;
 import com.final2.yoseobara.repository.MemberRepository;
 import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,11 +33,16 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final S3Service s3Service;
     private final MapService mapService;
+    private final HeartRepository heartRepository;
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
         List<Post> posts = postRepository.findAll();
         List<PostResponseDto> postList = new ArrayList<>();
+
+        // 만약 로그인한 상태라면
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
 
         for (Post post : posts) {
             PostResponseDto postResponseDto = PostResponseDto.builder()
@@ -42,6 +50,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
@@ -54,10 +63,16 @@ public class PostService {
         Post post = postRepository.findById(postid).orElseThrow(
                 () -> new IllegalArgumentException("Couldn't find the post")
         );
+
+        // 만약 로그인한 상태라면
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
+
         return PostResponseDto.builder()
                 .post(post)
                 //.view(post.getView())
                 .heart(post.getHeart())
+                .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postid))
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
                 .build();
@@ -88,6 +103,10 @@ public class PostService {
     // Post 슬라이스 -> 무한스크롤은 페이지보다 슬라이스가 좋음 (카운트를 하지 않아서)
     public Slice<PostResponseDto> getPostSlice(String search, String keyword, Pageable pageable) {
 
+        // 만약 로그인한 상태라면
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
+
         // 정렬의 디폴트는 최신순
         Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
         Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
@@ -114,6 +133,7 @@ public class PostService {
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
                             .heart(post.getHeart())
+                            .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                             .build());
             }
         }
@@ -126,6 +146,7 @@ public class PostService {
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .heart(post.getHeart())
+                        .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -139,6 +160,10 @@ public class PostService {
         if (memberRepository.findByNickname(nickname).isEmpty()) {
             throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
         }
+
+        // 만약 로그인한 상태라면
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
 
         // 정렬의 디폴트는 최신순
         Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
@@ -160,6 +185,8 @@ public class PostService {
                         .post(post)
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
+                        .heart(post.getHeart())
+                        .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
         return postDtoSlice;
