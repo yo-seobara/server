@@ -323,6 +323,7 @@ public class PostService {
     public Post selectBoardDetail(Long PostId){
         Post post = postRepository.findById(PostId).get();
         post.updateView(post.getView());
+        postRepository.save(post);
         return post;
     }
 }
