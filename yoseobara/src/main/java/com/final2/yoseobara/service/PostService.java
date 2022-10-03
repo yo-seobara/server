@@ -87,12 +87,17 @@ public class PostService {
 
         List<PostResponseDto> postList = new ArrayList<>();
 
+        // 만약 로그인한 상태라면
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
+
         for (Post post : posts) {
             PostResponseDto postResponseDto = PostResponseDto.builder()
                     .post(post)
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
