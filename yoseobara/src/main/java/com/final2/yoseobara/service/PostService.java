@@ -50,6 +50,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .memberId(post.getMember().getMemberId())
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
@@ -70,11 +71,12 @@ public class PostService {
 
         return PostResponseDto.builder()
                 .post(post)
-                //.view(post.getView())
+                .view(post.getView())
                 .heart(post.getHeart())
                 .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postid))
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
+                .memberId(post.getMember().getMemberId())
                 .build();
     }
 
@@ -97,6 +99,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .memberId(post.getMember().getMemberId())
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
@@ -138,6 +141,7 @@ public class PostService {
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
                             .heart(post.getHeart())
+                            .memberId(post.getMember().getMemberId())
                             .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                             .build());
             }
@@ -151,6 +155,7 @@ public class PostService {
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .heart(post.getHeart())
+                        .memberId(post.getMember().getMemberId())
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
@@ -190,6 +195,7 @@ public class PostService {
                         .post(post)
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
+                        .memberId(post.getMember().getMemberId())
                         .heart(post.getHeart())
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
@@ -225,10 +231,10 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
                 .heart(post.getHeart())
+                .memberId(post.getMember().getMemberId())
                 .build();
         return postResponseDto;
     }
-
 
     // Post 수정 -> 이미지 수정 어떤 방식으로 할까
     @Transactional
@@ -278,6 +284,7 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
                 .heart(post.getHeart())
+                .memberId(post.getMember().getMemberId())
                 .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                 .build();
     }
