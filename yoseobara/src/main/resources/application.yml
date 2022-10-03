@@ -26,7 +26,7 @@ spring:
 
   jpa:
     hibernate:
-        ddl-auto: update
+      ddl-auto: update
     properties:
       hibernate:
         show_sql: true
@@ -35,13 +35,13 @@ spring:
         use_sql_comments: true
 
 logging:
-    level:
-      org:
-        hibernate:
-          type:
-            descriptor:
-              sql: trace
-      root: INFO
+  level:
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+    root: INFO
 
 server:
   error:
