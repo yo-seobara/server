@@ -25,11 +25,11 @@ public class PostResponseDto {
 
     private Long view; // 조회수 계산
     private Long heart; // 좋아요 계산
-    private Boolean isHeart; // 좋아요 여부
+    private Boolean myHeart; // 좋아요 여부
     private String nickname; // 로그인된 작성자의 닉네임 받아오기
 
     @Builder // 이미지와 썸네일 추가하기
-    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart, Boolean isHeart) {
+    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart, Boolean myHeart) {
         this.postId = post.getPostId();
         this.title = post.getTitle();
         this.content = post.getContent();
@@ -43,7 +43,7 @@ public class PostResponseDto {
         this.thumbnailUrl = post.getThumbnailUrl();
         this.view = post.getView();
         this.heart = heart;
-        this.isHeart = isHeart;
+        this.myHeart = myHeart != null && myHeart; // null 일 때 false
         this.nickname = nickname;
     }
 }

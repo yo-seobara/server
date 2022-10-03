@@ -50,7 +50,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
-                    .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                    .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
@@ -72,7 +72,7 @@ public class PostService {
                 .post(post)
                 //.view(post.getView())
                 .heart(post.getHeart())
-                .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postid))
+                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postid))
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
                 .build();
@@ -97,7 +97,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
-                    .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                    .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
@@ -138,7 +138,7 @@ public class PostService {
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
                             .heart(post.getHeart())
-                            .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                            .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                             .build());
             }
         }
@@ -151,7 +151,7 @@ public class PostService {
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .heart(post.getHeart())
-                        .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                        .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -191,7 +191,7 @@ public class PostService {
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .heart(post.getHeart())
-                        .isHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                        .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -278,6 +278,7 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
                 .heart(post.getHeart())
+                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                 .build();
     }
 
