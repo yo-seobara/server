@@ -10,4 +10,5 @@ public interface HeartRepository extends JpaRepository<Heart, Long> {
 
     Optional<Heart> findHeartByMemberAndPostId(Member member, Long postId);
 
+    Boolean existsByMember_MemberIdAndPostId(Long memberId, Long postId);
 }
