@@ -1,5 +1,6 @@
 package com.final2.yoseobara.controller;
 
+import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
 import com.final2.yoseobara.dto.response.PostResponseDto;
@@ -31,23 +32,22 @@ public class PostController {
     private final S3Service s3Service;
 
 
-
     // 게시글 전체 조회
     @GetMapping("/all")
-    public ResponseDto<?> getPostList(){
+    public ResponseDto<?> getPostList() {
         return ResponseDto.success(postService.getPostList());
     }
 
     // 게시물 상세 조회
     @ResponseBody
     @GetMapping("/{postId}")
-    public ResponseDto<?> getPost(@PathVariable Long postId){
+    public ResponseDto<?> getPost(@PathVariable Long postId) {
         return ResponseDto.success(postService.getPost(postId));
     }
 
     // 게시물 범위내 조회
     @PostMapping("/bounds")
-    public ResponseDto<?> getPostListByBounds(@RequestBody MapRequestDto mapRequestDto){
+    public ResponseDto<?> getPostListByBounds(@RequestBody MapRequestDto mapRequestDto) {
         return ResponseDto.success(postService.getPostListByBounds(mapRequestDto));
     }
 
@@ -60,7 +60,7 @@ public class PostController {
     @GetMapping
     public ResponseDto<?> getPostSlice(@RequestParam(value = "search", defaultValue = "") String search,
                                        @RequestParam(value = "keyword", defaultValue = "") String keyword,
-                                       @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+                                       @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         //Slice<Post> postSlice = postRepository.findAll(pageable);
         return ResponseDto.success(postService.getPostSlice(search, keyword, pageable));
     }
@@ -70,9 +70,9 @@ public class PostController {
     @PostMapping
     public ResponseDto<?> createPost(@RequestPart PostRequestDto postRequestDto,
                                      @RequestPart(required = false) MultipartFile[] images,
-                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
         // 로그인 확인
-        if(userDetailsImpl.getMember() == null){
+        if (userDetailsImpl.getMember() == null) {
             return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
         }
 
@@ -80,9 +80,9 @@ public class PostController {
         Long memberId = userDetailsImpl.getMember().getMemberId();
 
         // 이미지 파일 1개 이상 3개 이하
-        if(images == null){
+        if (images == null) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_REQUIRED);
-        } else if (images.length > 3){
+        } else if (images.length > 3) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_MAX);
         }
 
@@ -101,7 +101,7 @@ public class PostController {
                                      @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 
         // 로그인 확인
-        if(userDetailsImpl.getMember() == null){
+        if (userDetailsImpl.getMember() == null) {
             return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
         }
 
@@ -117,10 +117,10 @@ public class PostController {
     // 게시물 삭제
     @DeleteMapping("/{postId}")
     public ResponseDto<?> deletePost(@PathVariable Long postId,
-                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl){
+                                     @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 
         // 로그인 확인
-        if(userDetailsImpl.getMember() == null){
+        if (userDetailsImpl.getMember() == null) {
             return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
         }
 
@@ -128,9 +128,9 @@ public class PostController {
         Long memberId = userDetailsImpl.getMember().getMemberId();
 
         // 게시물 데이터 삭제
-        try{
+        try {
             postService.deletePost(postId, memberId);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             return ResponseDto.fail(ErrorCode.DELETE_FAILED);
         }
 

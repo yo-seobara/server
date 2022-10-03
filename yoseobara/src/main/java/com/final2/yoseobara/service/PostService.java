@@ -42,6 +42,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .member(post.getMember().getMemberId())
                     .build();
             postList.add(postResponseDto);
         }
@@ -56,10 +57,11 @@ public class PostService {
         );
         return PostResponseDto.builder()
                 .post(post)
-                //.view(post.getView())
+                .view(post.getView())
                 .heart(post.getHeart())
                 .imageUrls(post.getImageUrls())
                 .nickname(post.getMember().getNickname())
+                .member(post.getMember().getMemberId())
                 .build();
     }
 
@@ -78,6 +80,7 @@ public class PostService {
                     .imageUrls(post.getImageUrls())
                     .nickname(post.getMember().getNickname())
                     .heart(post.getHeart())
+                    .member(post.getMember().getMemberId())
                     .build();
             postList.add(postResponseDto);
         }
@@ -114,6 +117,7 @@ public class PostService {
                             .imageUrls(post.getImageUrls())
                             .nickname(post.getMember().getNickname())
                             .heart(post.getHeart())
+                            .member(post.getMember().getMemberId())
                             .build());
             }
         }
@@ -126,6 +130,7 @@ public class PostService {
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
                         .heart(post.getHeart())
+                        .member(post.getMember().getMemberId())
                         .build()
         );
         return postDtoSlice;
@@ -160,6 +165,7 @@ public class PostService {
                         .post(post)
                         .imageUrls(post.getImageUrls())
                         .nickname(post.getMember().getNickname())
+                        .member(post.getMember().getMemberId())
                         .build()
         );
         return postDtoSlice;
@@ -193,10 +199,10 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
                 .heart(post.getHeart())
+                .member(post.getMember().getMemberId())
                 .build();
         return postResponseDto;
     }
-
 
     // Post 수정 -> 이미지 수정 어떤 방식으로 할까
     @Transactional
@@ -246,6 +252,7 @@ public class PostService {
                 .imageUrls(post.getImageUrls())
                 .nickname(memberFoundById.getNickname())
                 .heart(post.getHeart())
+                .member(post.getMember().getMemberId())
                 .build();
     }
 

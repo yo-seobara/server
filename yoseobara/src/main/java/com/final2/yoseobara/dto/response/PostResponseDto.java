@@ -1,14 +1,13 @@
 package com.final2.yoseobara.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 @Getter
@@ -24,13 +23,13 @@ public class PostResponseDto {
     private final LocalDateTime modifiedAt;
     private List<String> imageUrls;
     private String thumbnailUrl;
-
-    private Long view; // 조회수 계산
+    private Long view;
     private Long heart; // 좋아요 계산
     private String nickname; // 로그인된 작성자의 닉네임 받아오기
+    private Long member;
 
     @Builder // 이미지와 썸네일 추가하기
-    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart) {
+    public PostResponseDto(Post post, List<String> imageUrls, String nickname,Long heart,Long view,Long member) {
         this.postId = post.getPostId();
         this.title = post.getTitle();
         this.content = post.getContent();
@@ -42,8 +41,9 @@ public class PostResponseDto {
         this.modifiedAt = post.getModifiedAt();
         this.imageUrls = imageUrls;
         this.thumbnailUrl = post.getThumbnailUrl();
-        this.view = post.getView();
+        this.view = view;
         this.heart =heart;
         this.nickname = nickname;
+        this.member=member;
     }
 }

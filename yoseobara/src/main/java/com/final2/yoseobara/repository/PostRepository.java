@@ -1,7 +1,6 @@
 package com.final2.yoseobara.repository;
 
 
-import com.final2.yoseobara.domain.Heart;
 import com.final2.yoseobara.domain.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
