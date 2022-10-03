@@ -30,7 +30,7 @@ public class PostResponseDto {
     private Long memberId;
 
     @Builder // 이미지와 썸네일 추가하기
-    public PostResponseDto(Post post, List<String> imageUrls, String nickname, Long heart, Long view, Long memberId) {
+    public PostResponseDto(Post post, List<String> imageUrls, String nickname, Long heart, Boolean myHeart, Long view, Long memberId) {
         this.postId = post.getPostId();
         this.title = post.getTitle();
         this.content = post.getContent();
