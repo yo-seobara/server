@@ -13,9 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.final2.yoseobara.dto.request.*;
-import com.final2.yoseobara.service.KakaoMemberService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -29,8 +27,6 @@ public class MemberController {
     private final MemberService memberService;
     private final CommentService commentService;
     private final PostService postService;
-    private final KakaoMemberService kakaoMemberService;
-
     
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public ResponseDto<?> signup(@RequestBody @Valid MemberRequestDto requestDto) {
@@ -100,11 +96,5 @@ public class MemberController {
             return ResponseDto.fail(ErrorCode.LOGIN_REQUIRED);
         }
         return ResponseDto.success(commentService.getMyComment(userDetails.getMember().getMemberId(), pageable));
-    }
-
-    // 카카오 로그인 요청
-    @GetMapping("/member/kakao/callback")
-    public KakaoTokenDto kakaoLogin(@RequestParam String code, HttpServletResponse response) throws JsonProcessingException {
-        return kakaoMemberService.kakaoLogin(code, response);
     }
 }

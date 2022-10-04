@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class KakaoTokenDto {
+    private Long memberId;
     private String nickname;
     private String grantType;
     private String accessToken;
