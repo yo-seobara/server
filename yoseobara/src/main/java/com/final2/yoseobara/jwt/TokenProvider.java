@@ -103,6 +103,7 @@ public class TokenProvider {
         refreshTokenRepository.save(refreshTokenObject);
 
         return KakaoTokenDto.builder()
+                .memberId(kakaoUserInfoDto.getId())
                 .nickname(kakaoUserInfoDto.getNickname())
                 .grantType(BEARER_PREFIX)
                 .accessToken(accessToken)
