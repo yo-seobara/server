@@ -16,6 +16,7 @@ public class CommentResponseDto {
     private String nickname;
     private Long commentId;
     private String content;
+    private Long memberId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -24,6 +25,7 @@ public class CommentResponseDto {
 
     @Builder
     public CommentResponseDto(Comment comment) {
+        this.memberId = comment.getMember().getMemberId();
         this.postId = comment.getPost().getPostId();
         this.nickname = comment.getMember().getNickname();
         this.commentId = comment.getCommentId();
