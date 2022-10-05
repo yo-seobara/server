@@ -28,8 +28,12 @@ public class CommentService {
     private final PostRepository postRepository;
 
     // 게시글 코멘트 조회
-    public List<CommentResponseDto> getComment(Long postId) {
-        List<Comment> comments = commentRepository.findAllByPostPostId(postId);
+    public List<CommentResponseDto> getComment(Long postId, Pageable pageable) {
+
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        List<Comment> comments = commentRepository.findAllByPostPostId(postId, page);
 
         return comments.stream()
                 .map(CommentResponseDto::new)
@@ -61,14 +65,14 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidValueException(ErrorCode.POST_NOT_FOUND));
 
-        Comment commnet = commentRepository.save(Comment.builder()
+        Comment comment = commentRepository.save(Comment.builder()
                 .content(requestDto.getContent())
                 .member(member)
                 .post(post)
                 .build());
 
         return CommentResponseDto.builder()
-                .comment(commnet)
+                .comment(comment)
                 .build();
     }
 

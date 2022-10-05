@@ -6,6 +6,9 @@ import com.final2.yoseobara.dto.request.CommentRequestDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +21,9 @@ public class CommentController {
 
     // 게시글 코멘트 조회
     @GetMapping
-    public ResponseDto<?> getComment(@PathVariable Long postId) {
-        return ResponseDto.success(commentService.getComment(postId));
+    public ResponseDto<?> getComment(@PathVariable Long postId,
+                                     @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseDto.success(commentService.getComment(postId, pageable));
     }
 
     // 코멘트 작성
