@@ -55,8 +55,8 @@ public class PostService {
     }
 
     // Post 상세 조회
-    public PostResponseDto getPost(Long postid) {
-        Post post = postRepository.findById(postid).orElseThrow(
+    public PostResponseDto getPost(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(
                 () -> new IllegalArgumentException("Couldn't find the post")
         );
 
@@ -143,6 +143,43 @@ public class PostService {
     }
 
 
+    // 멤버 아이디로 Post 조회
+    public Page<PostResponseDto> getPostPageByMemberId(Long memberId, String search, String keyword, Pageable pageable) {
+
+        // 해당 멤버 존재 확인
+        if (memberRepository.findById(memberId).isEmpty()) {
+            throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 만약 로그인한 상태라면 나의 멤버 아이디
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long myMemberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
+
+        // 정렬의 디폴트는 최신순
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // jpa문을 and로 바꿔봄
+        String title = "";
+        String content = "";
+        if (Objects.nonNull(search)) {
+            switch (search) {
+                case "title" -> title = keyword;
+                case "content" -> content = keyword;
+            }
+        }
+
+        Page<Post> postSlice = postRepository.findAllByMember_MemberIdAndTitleContainingAndContentContaining(memberId, title, content, page);
+        Page<PostResponseDto> postDtoSlice = postSlice.map(
+                post -> PostResponseDto.builder()
+                        .post(post)
+                        .myHeart(heartRepository.existsByMember_MemberIdAndPostId(myMemberId, post.getPostId()))
+                        .build()
+        );
+        return postDtoSlice;
+    }
+
+
     // 닉네임으로 Post 리스트 조회 (유저페이지)
     public Page<PostResponseDto> getPostPageByNickname(String nickname, String search, String keyword, Pageable pageable) {
 
@@ -151,7 +188,7 @@ public class PostService {
             throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 만약 로그인한 상태라면
+        // 만약 로그인한 상태라면 나의 멤버 아이디
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
 
@@ -173,10 +210,6 @@ public class PostService {
         Page<PostResponseDto> postDtoSlice = postSlice.map(
                 post -> PostResponseDto.builder()
                         .post(post)
-                        .imageUrls(post.getImageUrls())
-                        .nickname(post.getMember().getNickname())
-                        .memberId(post.getMember().getMemberId())
-                        .heart(post.getHeart())
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );

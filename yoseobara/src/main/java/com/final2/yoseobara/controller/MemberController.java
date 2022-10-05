@@ -66,7 +66,17 @@ public class MemberController {
                 .build());
     }
 
-    // 유저페이지 리스팅 (페이지)
+    // 유저페이지 리스팅 (페이지) - 멤버 아이디로
+    // 정렬, 검색 가능
+    @GetMapping("/posts/{memberId}")
+    public ResponseDto<?> getPostPageByMemberId(@PathVariable Long memberId,
+                                                @RequestParam(value = "search", defaultValue = "") String search,
+                                                @RequestParam(value = "keyword", defaultValue = "") String keyword,
+                                                @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        return ResponseDto.success(postService.getPostPageByMemberId(memberId, search, keyword, pageable));
+    }
+
+    // 유저페이지 리스팅 (페이지) - 닉네임으로
     // 정렬, 검색 가능
     @GetMapping("/posts/{nickname}")
     public ResponseDto<?> getPostPageByNickname(@PathVariable String nickname,

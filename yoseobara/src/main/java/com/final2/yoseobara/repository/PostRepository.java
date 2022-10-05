@@ -22,6 +22,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findAllByMember_NicknameAndTitleContainingAndContentContaining(String nickname, String title, String content, Pageable pageable);
 
+    Page<Post> findAllByMember_MemberIdAndTitleContainingAndContentContaining(Long memberId, String title, String content, Pageable pageable);
+
     @Query("select p from Post p")
     public Slice<Post> findAllDefault(Pageable pageable);
 
