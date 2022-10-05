@@ -1,9 +1,7 @@
 package com.final2.yoseobara.service;
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
 import com.final2.yoseobara.repository.MemberRepository;
@@ -13,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,8 +21,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -41,21 +38,10 @@ public class S3Service {
         List<String> fileUrls = new ArrayList<>();
         for (MultipartFile file : files) {
 
-            // Objects.requireNonNull 을 사용할 수도 있음
-            if (Objects.isNull(file) || file.isEmpty()) {
-                throw new InvalidValueException(ErrorCode.FILE_NOT_FOUND);
-            }
-
-            String fileName = file.getOriginalFilename().toLowerCase();
-            String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.KOREA));
-            String saveFileName = now + "-" + fileName;
-
-            // String uuid = UUID.randomUUID().toString(); // UUID 로 파일을 저장한다면 확장자만 붙여도 괜찮음
-            String extension = fileName.substring(fileName.lastIndexOf("."));
-            String contentType = "";
+            String fileName = getFileName(file);
 
             try {
-                if (saveFileName.contains("..")) {
+                if (fileName.contains("..")) {
                     throw new InvalidValueException(ErrorCode.INVALID_FILE_NAME);
                 }
 
@@ -63,34 +49,22 @@ public class S3Service {
                     throw new InvalidValueException(ErrorCode.INVALID_IMAGE_FILE_EXTENSION);
                 }
 
-                // content type을 지정해서 올려주지 않으면 자동으로 "application/octet-stream"으로 고정이 되어
-                // 링크 클릭시 웹에서 열리는게 아니라 자동 다운이 시작됨
-                switch (extension) {
-                    case ".bmp" -> contentType = "image/bmp";
-                    case ".jpg" -> contentType = "image/jpg";
-                    case ".jpeg" -> contentType = "image/jpeg";
-                    case ".png" -> contentType = "image/png";
-                }
+                String contentType = getContentType(fileName.substring(fileName.lastIndexOf(".")));
 
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentType(contentType);
                 metadata.setContentLength(file.getSize());
 
-                // 첫번째 파일로 썸네일 생성
-                if (file.equals(files[0])) {
-                    fileUrls.add(uploadThumbnail(file, saveFileName, contentType));
-                }
-
                 // PutObjectRequest 이용하여 파일 생성 없이 바로 업로드
-                amazonS3Client.putObject(new PutObjectRequest(bucket, saveFileName, file.getInputStream(), metadata)
+                amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, file.getInputStream(), metadata)
                         .withCannedAcl(CannedAccessControlList.PublicRead));
             } catch (IOException e) {
                 throw new InvalidValueException(ErrorCode.UPLOAD_FAILED);
             }
             // URL 받아올 때 한글 파일명 깨짐 방지
-            fileUrls.add(URLDecoder.decode(amazonS3Client.getUrl(bucket, saveFileName).toString(), StandardCharsets.UTF_8));
+            fileUrls.add(URLDecoder.decode(amazonS3Client.getUrl(bucket, fileName).toString(), StandardCharsets.UTF_8));
         }
-        return fileUrls; // url string 리턴 (썸네일 포함)
+        return fileUrls; // url string 리턴
     }
 
     // 이미지 삭제
@@ -116,10 +90,37 @@ public class S3Service {
         // 새 이미지 업로드
         return uploadFile(newFiles); // url string 리턴
     }
-    
+
+    public String getFileName(MultipartFile file) {
+        // Objects.requireNonNull 을 사용할 수도 있음
+        if (Objects.isNull(file) || file.isEmpty()) {
+            throw new InvalidValueException(ErrorCode.FILE_NOT_FOUND);
+        }
+
+        String fileName = file.getOriginalFilename().toLowerCase();
+        String uuid = UUID.randomUUID().toString();
+        return uuid + "-" + fileName;
+    }
+
+    public String getContentType(String extension) {
+        String contentType = "";
+        // content type을 지정해서 올려주지 않으면 자동으로 "application/octet-stream"으로 고정이 되어
+        // 링크 클릭시 웹에서 열리는게 아니라 자동 다운이 시작됨
+        switch (extension) {
+            case ".bmp" -> contentType = "image/bmp";
+            case ".jpg" -> contentType = "image/jpg";
+            case ".jpeg" -> contentType = "image/jpeg";
+            case ".png" -> contentType = "image/png";
+        }
+        return contentType;
+    }
+
     // 썸네일 파일 업로드
-    public String uploadThumbnail(MultipartFile file, String saveFileName, String contentType) {
+    public String uploadThumbnail(MultipartFile file, String fileName) throws IllegalArgumentException {
+
+        String contentType = getContentType(fileName.substring(fileName.lastIndexOf(".")));
         String thumbnailFileName;
+
         try {
             // S3를 위한 썸네일 이미지 만들기
             BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
@@ -135,7 +136,7 @@ public class S3Service {
             thumbnailMetadata.setContentType(contentType);
 
             // 썸네일 파일명
-            thumbnailFileName = String.valueOf(new StringBuilder(saveFileName).insert(saveFileName.indexOf("."), "(thumbnail)"));
+            thumbnailFileName = String.valueOf(new StringBuilder(fileName).insert(fileName.indexOf("."), "(thumbnail)"));
 
             // 썸네일 업로드
             InputStream thumbnailInput = new ByteArrayInputStream(thumbnailBytes);
@@ -151,6 +152,25 @@ public class S3Service {
             throw new InvalidValueException(ErrorCode.UPLOAD_FAILED);
         }
         return URLDecoder.decode(amazonS3Client.getUrl(bucket, thumbnailFileName).toString(), StandardCharsets.UTF_8);
+    }
+
+    // S3 에서 이미지 가져와서 멀티파트 파일 만들기
+    public MultipartFile convertUrlToMultipartFile(String fileUrl) {
+        try {
+            String fileName = fileUrl.split("/")[3];
+            String extension = fileName.substring(fileName.lastIndexOf("."));
+            String contentType = getContentType(extension);
+
+            // s3에서 파일 가져오기
+            S3Object s3Object = amazonS3Client.getObject(bucket, fileName);
+            InputStream inputStream = s3Object.getObjectContent();
+
+            // s3에서 가져온 파일을 multipartFile로 변환
+            return new MockMultipartFile(fileName, fileName, contentType, inputStream);
+
+        } catch (IOException e) {
+            throw new InvalidValueException(ErrorCode.FILE_NOT_FOUND);
+        }
     }
 }
 

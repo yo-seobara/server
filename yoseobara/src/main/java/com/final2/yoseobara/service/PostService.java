@@ -2,6 +2,7 @@ package com.final2.yoseobara.service;
 
 
 
+import com.final2.yoseobara.domain.Image;
 import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.dto.request.MapRequestDto;
 import com.final2.yoseobara.dto.request.PostRequestDto;
@@ -10,10 +11,7 @@ import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import com.final2.yoseobara.exception.ErrorCode;
 import com.final2.yoseobara.exception.InvalidValueException;
-import com.final2.yoseobara.repository.CommentRepository;
-import com.final2.yoseobara.repository.HeartRepository;
-import com.final2.yoseobara.repository.MemberRepository;
-import com.final2.yoseobara.repository.PostRepository;
+import com.final2.yoseobara.repository.*;
 import com.final2.yoseobara.shared.Authority;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -34,6 +32,7 @@ public class PostService {
     private final S3Service s3Service;
     private final MapService mapService;
     private final HeartRepository heartRepository;
+    private final ImageRepository imageRepository;
 
     // Post 리스트 조회 - responseDto의 @Builder와 연계됨.
     public List<PostResponseDto> getPostList() {
@@ -47,10 +46,6 @@ public class PostService {
         for (Post post : posts) {
             PostResponseDto postResponseDto = PostResponseDto.builder()
                     .post(post)
-                    .imageUrls(post.getImageUrls())
-                    .nickname(post.getMember().getNickname())
-                    .heart(post.getHeart())
-                    .memberId(post.getMember().getMemberId())
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
@@ -60,8 +55,8 @@ public class PostService {
     }
 
     // Post 상세 조회
-    public PostResponseDto getPost(Long postid) {
-        Post post = postRepository.findById(postid).orElseThrow(
+    public PostResponseDto getPost(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow(
                 () -> new IllegalArgumentException("Couldn't find the post")
         );
 
@@ -71,12 +66,9 @@ public class PostService {
 
         return PostResponseDto.builder()
                 .post(post)
-                .view(post.getView())
-                .heart(post.getHeart())
-                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postid))
-                .imageUrls(post.getImageUrls())
-                .nickname(post.getMember().getNickname())
-                .memberId(post.getMember().getMemberId())
+                //.view(post.getView())
+                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postId))
+                .imageUrls(imageRepository.findImageUrls(postId))
                 .build();
     }
 
@@ -96,10 +88,6 @@ public class PostService {
         for (Post post : posts) {
             PostResponseDto postResponseDto = PostResponseDto.builder()
                     .post(post)
-                    .imageUrls(post.getImageUrls())
-                    .nickname(post.getMember().getNickname())
-                    .heart(post.getHeart())
-                    .memberId(post.getMember().getMemberId())
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                     .build();
             postList.add(postResponseDto);
@@ -138,10 +126,6 @@ public class PostService {
                 case "":
                     return postRepository.findAllDefault(page).map(post -> PostResponseDto.builder()
                             .post(post)
-                            .imageUrls(post.getImageUrls())
-                            .nickname(post.getMember().getNickname())
-                            .heart(post.getHeart())
-                            .memberId(post.getMember().getMemberId())
                             .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                             .build());
             }
@@ -152,11 +136,44 @@ public class PostService {
         Slice<PostResponseDto> postDtoSlice = postSlice.map(
                 post -> PostResponseDto.builder()
                         .post(post)
-                        .imageUrls(post.getImageUrls())
-                        .nickname(post.getMember().getNickname())
-                        .heart(post.getHeart())
-                        .memberId(post.getMember().getMemberId())
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                        .build()
+        );
+        return postDtoSlice;
+    }
+
+
+    // 멤버 아이디로 Post 조회
+    public Page<PostResponseDto> getPostPageByMemberId(Long memberId, String search, String keyword, Pageable pageable) {
+
+        // 해당 멤버 존재 확인
+        if (memberRepository.findById(memberId).isEmpty()) {
+            throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        // 만약 로그인한 상태라면 나의 멤버 아이디
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long myMemberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
+
+        // 정렬의 디폴트는 최신순
+        Sort sort = pageable.getSort().and(Sort.by("createdAt").descending());
+        Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        // jpa문을 and로 바꿔봄
+        String title = "";
+        String content = "";
+        if (Objects.nonNull(search)) {
+            switch (search) {
+                case "title" -> title = keyword;
+                case "content" -> content = keyword;
+            }
+        }
+
+        Page<Post> postSlice = postRepository.findAllByMember_MemberIdAndTitleContainingAndContentContaining(memberId, title, content, page);
+        Page<PostResponseDto> postDtoSlice = postSlice.map(
+                post -> PostResponseDto.builder()
+                        .post(post)
+                        .myHeart(heartRepository.existsByMember_MemberIdAndPostId(myMemberId, post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -171,7 +188,7 @@ public class PostService {
             throw new InvalidValueException(ErrorCode.USER_NOT_FOUND);
         }
 
-        // 만약 로그인한 상태라면
+        // 만약 로그인한 상태라면 나의 멤버 아이디
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long memberId = Objects.equals(principal.toString(), "anonymousUser") ? -1L : ((UserDetailsImpl) principal).getMember().getMemberId();
 
@@ -193,10 +210,6 @@ public class PostService {
         Page<PostResponseDto> postDtoSlice = postSlice.map(
                 post -> PostResponseDto.builder()
                         .post(post)
-                        .imageUrls(post.getImageUrls())
-                        .nickname(post.getMember().getNickname())
-                        .memberId(post.getMember().getMemberId())
-                        .heart(post.getHeart())
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
                         .build()
         );
@@ -205,36 +218,42 @@ public class PostService {
 
 
     // Post 생성
-    public PostResponseDto createPost(PostRequestDto postRequestDto, List<String> imageUrls, Long memberId) {
+    public PostResponseDto createPost(PostRequestDto postRequestDto, String thumnailUrl, List<String> imageUrls, Long memberId) {
         Member memberFoundById = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저는 존재하지 않습니다.")); // 에러코드 수정
+                .orElseThrow(() -> new InvalidValueException(ErrorCode.USER_NOT_FOUND)); // 에러코드 수정
 
-        String address = mapService.getAddress(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
-
+        //String address = mapService.getAddress(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
 
         // 게시물 생성
         Post post = Post.builder()
                 //.member(memberFoundById)
                 .title(postRequestDto.getTitle())
                 .content(postRequestDto.getContent())
-                .address(address)
+                .address(postRequestDto.getAddress())
                 .location(postRequestDto.getLocation())
-                .imageUrls(imageUrls)
+                .thumbnailUrl(thumnailUrl)
                 .build();
         // 멤버 정보 추가
         post.mapToMember(memberFoundById);
         // DB에 저장
         postRepository.save(post);
-        
-        PostResponseDto postResponseDto = PostResponseDto.builder()
+
+        // 이미지 저장
+        for (String imageUrl : imageUrls) {
+            Image image = Image.builder()
+                    .post(post)
+                    .imageOrder(imageUrls.indexOf(imageUrl))
+                    .imageUrl(imageUrl)
+                    .build();
+            imageRepository.save(image);
+        }
+
+        return PostResponseDto.builder()
                 .post(post)
-                .imageUrls(post.getImageUrls())
-                .nickname(memberFoundById.getNickname())
-                .heart(post.getHeart())
-                .memberId(post.getMember().getMemberId())
+                .imageUrls(imageUrls)
                 .build();
-        return postResponseDto;
     }
+
 
     // Post 수정 -> 이미지 수정 어떤 방식으로 할까
     @Transactional
@@ -253,39 +272,68 @@ public class PostService {
             throw new InvalidValueException(ErrorCode.POST_UNAUTHORIZED);
         }
 
-        // 이미지가 존재하면 S3와 DB 업데이트 -> 이미지가 없으면 기존 이미지 유지이긴 한데 1개 이상으로 설정해서 일단 그냥 덮어씌우는 걸로
-        // 기존 이미지인지 확인 기능 찾아보기 (파일의 URL 혹은 메타데이터 등?)
-        if (newImages != null) {
-            // 이미지 1개 이상 3개 이하
-            if(newImages.length > 3) {
-                throw new InvalidValueException(ErrorCode.POST_IMAGE_MAX);
-            } else if (newImages.length < 1) {
-                throw new InvalidValueException(ErrorCode.POST_IMAGE_REQUIRED);
-            }
-
-            List<String> imageUrls = s3Service.updateFile(post.getImageUrls(), post.getThumbnailUrl(), newImages);
-            // 서브리스트 문제 때문에 임시로 만든 변수
-            List<String> temp = new ArrayList<>(imageUrls.subList(1, imageUrls.size()));
-            post.setImageUrls(temp);
-            post.setThumbnailUrl(imageUrls.get(0));
+        // 총 이미지 1개 이상 3개 이하
+        int newImageCount = newImages[0].isEmpty() ? 0 : newImages.length;  // multipartfile은 null이 아니라 빈 배열이 들어오는 듯
+        if (post.getImage().size() - postRequestDto.getDeleteImageOrders().size() + newImageCount > 3) {
+            throw new InvalidValueException(ErrorCode.POST_IMAGE_MAX);
+        } else if (post.getImage().size() - postRequestDto.getDeleteImageOrders().size() + newImageCount < 1) {
+            throw new InvalidValueException(ErrorCode.POST_IMAGE_REQUIRED);
         }
 
-        String address = mapService.getAddress(postRequestDto.getLocation().get("lat"), postRequestDto.getLocation().get("lng"));
+        List<String> imageUrls = new ArrayList<>();
 
-        // 나머지 데이터 업데이트
-        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), address, postRequestDto.getLocation());
-        // 멤버 정보 추가
-        //post.mapToMember(memberFoundById);
-        // DB에 저장
-        postRepository.save(post);
+        // 삭제할 이미지는 삭제하고 나머지는 순서 새로 매김
+        if (Objects.nonNull(postRequestDto.getDeleteImageOrders())) {
+            List<Image> images = imageRepository.findAllByPost_PostIdOrderByImageOrder(postId);
+            int order = 0;
+            for (int i = 0; i < images.size(); i++) {
+                if (postRequestDto.getDeleteImageOrders().contains(i)) {
+                    imageRepository.deleteByImageId(images.get(i).getImageId());
+                } else {
+                    images.get(i).setImageOrder(order);
+                    imageRepository.save(images.get(i));
+                    imageUrls.add(images.get(i).getImageUrl());
+                    order++;
+                }
+            }
+        }
+
+        // 새로운 이미지가 존재하면 저장
+        if (!newImages[0].isEmpty()) {
+            List<String> newImageUrls = s3Service.uploadFile(newImages);
+            int order = post.getImage().size() - postRequestDto.getDeleteImageOrders().size();
+            for (String newImageUrl : newImageUrls) {
+                Image image = Image.builder()
+                        .post(post)
+                        .imageOrder(order)  // 뒤로 추가한다
+                        .imageUrl(newImageUrl)
+                        .build();
+                imageRepository.save(image);
+                imageUrls.add(newImageUrl);
+                order++;
+            }
+        }
+
+
+        // 썸네일 가진 이미지 삭제 시 새로운 썸네일 생성
+        if (postRequestDto.getDeleteImageOrders().contains(0)) {
+            // 모든 작업 반영된 후의 첫번째 이미지
+            String targetImageUrl = imageRepository.findByPost_PostIdAndImageOrder(postId, 0).getImageUrl();
+            // 새 썸네일 파일 만들기
+            MultipartFile file = s3Service.convertUrlToMultipartFile(targetImageUrl);
+            // 기존 썸네일 삭제
+            s3Service.deleteFile(post.getThumbnailUrl());
+            // 새 썸네일 업로드
+            post.setThumbnailUrl(s3Service.uploadThumbnail(file, targetImageUrl.split("/")[3]));
+        }
+
+        // 게시물 내용 수정
+        post.update(postRequestDto.getTitle(), postRequestDto.getContent(), postRequestDto.getAddress(), postRequestDto.getLocation());
 
         return PostResponseDto.builder()
                 .post(post)
-                .imageUrls(post.getImageUrls())
-                .nickname(memberFoundById.getNickname())
-                .heart(post.getHeart())
-                .memberId(post.getMember().getMemberId())
-                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                .imageUrls(imageUrls)
+                .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, postId))
                 .build();
     }
 
@@ -308,8 +356,14 @@ public class PostService {
         // 게시물에 달린 댓글 삭제
         commentRepository.deleteAllByPost(postFoundById);
 
+        // 게시물에 달린 좋아요 삭제
+        heartRepository.deleteAllByPostId(postFoundById.getPostId());
+
+        // 게시물에 달린 이미지 삭제
+        imageRepository.deleteAllByPost(postFoundById);
+
         // 게시물 이미지 삭제
-        for (String imageUrl : postFoundById.getImageUrls()) {
+        for (String imageUrl : postFoundById.getImage().stream().map(Image::getImageUrl).toList()) {
             s3Service.deleteFile(imageUrl);
         }
         

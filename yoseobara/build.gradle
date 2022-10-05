@@ -56,6 +56,10 @@ dependencies {
 
     // json in java
     implementation group: 'org.json', name: 'json', version: '20220320'
+
+    // mock multipart file
+    implementation group: 'org.springframework', name: 'spring-test', version: '5.3.13'
+
 }
 
 tasks.named('test') {
