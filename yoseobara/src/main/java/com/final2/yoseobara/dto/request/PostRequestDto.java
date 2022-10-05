@@ -14,4 +14,5 @@ public class PostRequestDto {
     private String content;
     private String address;
     private HashMap<String,Double> location;
+    private List<Integer> deleteImageOrders;
 }

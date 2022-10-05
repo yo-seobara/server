@@ -1,7 +1,6 @@
 package com.final2.yoseobara.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.final2.yoseobara.domain.Member;
 import com.final2.yoseobara.domain.Post;
 import lombok.Builder;
 import lombok.Getter;

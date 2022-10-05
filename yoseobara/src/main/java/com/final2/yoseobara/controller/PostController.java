@@ -7,7 +7,6 @@ import com.final2.yoseobara.dto.response.PostResponseDto;
 import com.final2.yoseobara.dto.response.ResponseDto;
 import com.final2.yoseobara.domain.UserDetailsImpl;
 import com.final2.yoseobara.exception.ErrorCode;
-import com.final2.yoseobara.repository.PostRepository;
 import com.final2.yoseobara.service.PostService;
 import com.final2.yoseobara.service.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -82,7 +80,7 @@ public class PostController {
         Long memberId = userDetailsImpl.getMember().getMemberId();
 
         // 이미지 파일 1개 이상 3개 이하
-        if (images == null) {
+        if (images[0].isEmpty()) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_REQUIRED);
         } else if (images.length > 3) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_MAX);
@@ -90,8 +88,10 @@ public class PostController {
 
         // 이미지 S3 업로드
         List<String> imageUrls = s3Service.uploadFile(images);
+        // 첫번째 이미지로 썸네일
+        String thumbnailUrl = s3Service.uploadThumbnail(images[0], imageUrls.get(0).split("/")[3]);
 
-        return ResponseDto.success(postService.createPost(postRequestDto, imageUrls, memberId));
+        return ResponseDto.success(postService.createPost(postRequestDto, thumbnailUrl, imageUrls, memberId));
     }
 
 

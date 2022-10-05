@@ -6,12 +6,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -52,9 +50,13 @@ public class Post extends Timestamped {
 //    @ElementCollection(targetClass = String.class) // 값 타입 컬렉션 맵, 기본적으로 OneToMany
 //    private List<String> imageUrls;
 
-    @Column(columnDefinition = "json")
-    @Type(type = "json") // json 으로 리스트 넣음. 괜찮은지 모름
-    private List<String> imageUrls;
+//    @Column(columnDefinition = "json")
+//    @Type(type = "json") // json 으로 리스트 넣음. 괜찮은지 모름
+//    private List<String> imageUrls;
+
+    @OneToMany(mappedBy = "post")
+    @JsonIgnore // 상세에만 보이게 하기 위해
+    private List<Image> image;
 
     @Column
     private String thumbnailUrl;
@@ -73,7 +75,7 @@ public class Post extends Timestamped {
     }
 
     @Builder
-    public Post(String title, String content,String address, HashMap<String,Double> location, List<String> imageUrls) {
+    public Post(String title, String content,String address, HashMap<String,Double> location, String thumbnailUrl) {
         //this.member = member;
         this.title = title;
         this.content = content;
@@ -84,9 +86,9 @@ public class Post extends Timestamped {
 //        this.location.put("lat",location.get("lat"));
 //        this.location.put("lng",location.get("lng"));
         // 서브리스트 문제 때문에 임시로 만든 변수
-        List<String> temp = new ArrayList<>(imageUrls.subList(1,imageUrls.size()));
-        this.imageUrls = temp;
-        this.thumbnailUrl = imageUrls.get(0);
+//        List<String> temp = new ArrayList<>(imageUrls.subList(1,imageUrls.size()));
+//        this.imageUrls = temp;
+        this.thumbnailUrl = thumbnailUrl;
         this.view = 0L;
         this.heart = 0L;
     }
