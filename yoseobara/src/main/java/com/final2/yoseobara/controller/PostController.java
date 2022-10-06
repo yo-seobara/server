@@ -80,7 +80,7 @@ public class PostController {
         Long memberId = userDetailsImpl.getMember().getMemberId();
 
         // 이미지 파일 1개 이상 3개 이하
-        if (images[0].isEmpty()) {
+        if (images == null) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_REQUIRED);
         } else if (images.length > 3) {
             return ResponseDto.fail(ErrorCode.POST_IMAGE_MAX);
