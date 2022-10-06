@@ -47,6 +47,7 @@ public class PostService {
             PostResponseDto postResponseDto = PostResponseDto.builder()
                     .post(post)
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                    .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
@@ -89,6 +90,7 @@ public class PostService {
             PostResponseDto postResponseDto = PostResponseDto.builder()
                     .post(post)
                     .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                    .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                     .build();
             postList.add(postResponseDto);
         }
@@ -127,6 +129,7 @@ public class PostService {
                     return postRepository.findAllDefault(page).map(post -> PostResponseDto.builder()
                             .post(post)
                             .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                            .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                             .build());
             }
         }
@@ -137,6 +140,7 @@ public class PostService {
                 post -> PostResponseDto.builder()
                         .post(post)
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                        .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -174,6 +178,7 @@ public class PostService {
                 post -> PostResponseDto.builder()
                         .post(post)
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(myMemberId, post.getPostId()))
+                        .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                         .build()
         );
         return postDtoSlice;
@@ -211,6 +216,7 @@ public class PostService {
                 post -> PostResponseDto.builder()
                         .post(post)
                         .myHeart(heartRepository.existsByMember_MemberIdAndPostId(memberId, post.getPostId()))
+                        .imageUrls(imageRepository.findImageUrls(post.getPostId()))
                         .build()
         );
         return postDtoSlice;
