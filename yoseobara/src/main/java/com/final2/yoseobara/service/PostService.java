@@ -279,7 +279,7 @@ public class PostService {
         }
 
         // 총 이미지 1개 이상 3개 이하
-        int newImageCount = newImages[0].isEmpty() ? 0 : newImages.length;  // multipartfile은 null이 아니라 빈 배열이 들어오는 듯
+        int newImageCount = newImages == null ? 0 : newImages.length;  // multipartfile은 null이 아니라 빈 배열이 들어오는 듯
         if (post.getImage().size() - postRequestDto.getDeleteImageOrders().size() + newImageCount > 3) {
             throw new InvalidValueException(ErrorCode.POST_IMAGE_MAX);
         } else if (post.getImage().size() - postRequestDto.getDeleteImageOrders().size() + newImageCount < 1) {
@@ -305,7 +305,7 @@ public class PostService {
         }
 
         // 새로운 이미지가 존재하면 저장
-        if (!newImages[0].isEmpty()) {
+        if (newImages != null) {
             List<String> newImageUrls = s3Service.uploadFile(newImages);
             int order = post.getImage().size() - postRequestDto.getDeleteImageOrders().size();
             for (String newImageUrl : newImageUrls) {
