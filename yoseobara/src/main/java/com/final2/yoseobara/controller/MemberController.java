@@ -74,7 +74,7 @@ public class MemberController {
 
     // 유저페이지 리스팅 (페이지) - 닉네임으로
     // 정렬, 검색 가능
-    @GetMapping("/posts/{nickname}")
+    @GetMapping("/posts/nickname/{nickname}")
     public ResponseDto<?> getPostPageByNickname(@PathVariable String nickname,
                                                 @RequestParam(value = "search", defaultValue = "") String search,
                                                 @RequestParam(value = "keyword", defaultValue = "") String keyword,
