@@ -15,4 +15,4 @@
 
 # 1. About of Project
 
-이노베이션캠프 실전프로젝트
+https://github.com/yo-seobara
